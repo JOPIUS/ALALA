@@ -1,0 +1,1 @@
+[python.exe](http://_vscodecontentref_/11) [resume_messages_downloader.py](http://_vscodecontentref_/12) --sample-size 200 --csv "C:\ManekiNeko\AVITO_API\output\already_bought_id.csv" --no-proxy

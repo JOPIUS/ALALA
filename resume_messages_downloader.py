@@ -1,0 +1,241 @@
+#!/usr/bin/env python3
+"""
+Fetch resumes (using app client_credentials) and, optionally, fetch messenger data (using personal token).
+- Uses proxies/proxy_manager.py for optional proxy rotation.
+- CLI options: --sample-size, --personal-token, --no-proxy, --csv
+
+Usage:
+  .venv\\Scripts\\python.exe resume_messages_downloader.py --sample-size 200 --csv "C:\\...\\already_bought_id.csv"
+
+If you provide --personal-token, messenger endpoints will be probed for each resume.
+"""
+from __future__ import annotations
+import argparse
+import csv
+import json
+import logging
+import os
+import sys
+import time
+from datetime import datetime
+from urllib.parse import urlencode
+
+import requests
+
+from proxies.proxy_manager import ProxyManager
+
+# Config
+APP_PROFILE = {
+    'client_id': 'pEm43bT2JX47aeb8OxNV',
+    'client_secret': 'pURVGURY6Mt95xTPxrTHJ_SpzL7sBPNRfTt7qQkw'
+}
+BASE_URL = 'https://api.avito.ru'
+
+# logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
+
+
+def read_ids(csv_path: str, limit: int):
+    ids = []
+    if not os.path.exists(csv_path):
+        logger.error('CSV not found: %s', csv_path)
+        return ids
+    with open(csv_path, 'r', encoding='utf-8-sig') as f:
+        content = f.read().strip()
+        lines = content.split('\n')
+        if lines and ('id' in lines[0].lower()):
+            reader = csv.DictReader(lines)
+            for row in reader:
+                for k, v in row.items():
+                    if k and 'id' in k.lower() and v and v.strip().isdigit():
+                        ids.append(int(v.strip()))
+                        break
+        else:
+            for line in lines:
+                for part in line.split(','):
+                    part = part.strip()
+                    if part.isdigit():
+                        ids.append(int(part))
+    ids = list(dict.fromkeys(ids))
+    logger.info('Total ids in CSV: %d', len(ids))
+    return ids[:limit]
+
+
+class AvitoClient:
+    def __init__(self, proxy_manager: ProxyManager | None = None, use_proxy: bool = True):
+        self.proxy_manager = proxy_manager or ProxyManager()
+        self.use_proxy = use_proxy
+        self.session = self.proxy_manager.get_session() if self.use_proxy else requests.Session()
+
+    def _request_with_rotation(self, method: str, url: str, max_attempts: int = 5, **kwargs):
+        """Perform HTTP request, rotating proxy on network errors/timeouts.
+
+        Returns requests.Response or raises the last exception.
+        """
+        last_exc = None
+        for attempt in range(1, max_attempts + 1):
+            # apply (possibly new) proxy before each attempt
+            self._apply_proxy()
+            try:
+                resp = self.session.request(method, url, **kwargs)
+                return resp
+            except requests.exceptions.RequestException as e:
+                last_exc = e
+                logger.warning('Request attempt %d/%d failed for %s %s: %s', attempt, max_attempts, method, url, e)
+                # small backoff and try next proxy
+                time.sleep(min(1 * attempt, 5))
+                continue
+        # exhausted
+        if last_exc:
+            raise last_exc
+        return None
+
+    def _apply_proxy(self):
+        if self.use_proxy and self.proxy_manager.has_proxies():
+            p = self.proxy_manager.next_proxy() or {}
+            self.session.proxies = p
+            logger.debug('Applied proxy: %s', p)
+
+    def get_app_token(self) -> str | None:
+        url = f"{BASE_URL}/token"
+        data = {
+            'grant_type': 'client_credentials',
+            'client_id': APP_PROFILE['client_id'],
+            'client_secret': APP_PROFILE['client_secret']
+        }
+        try:
+            r = self._request_with_rotation('POST', url, data=data, timeout=getattr(self.session, 'request_timeout', 15))
+            r.raise_for_status()
+            j = r.json()
+            return j.get('access_token')
+        except requests.exceptions.RequestException as e:
+            # network-level error
+            logger.error('get_app_token network error: %s', e)
+            return None
+        except Exception as e:
+            # HTTP error or JSON parsing error
+            text = ''
+            try:
+                text = r.text
+            except Exception:
+                text = ''
+            logger.error('get_app_token failed: %s %s', e, text)
+            return None
+
+    def get_resume(self, app_token: str, resume_id: int):
+        headers = {'Authorization': f'Bearer {app_token}'}
+        url = f"{BASE_URL}/job/v1/resumes/{resume_id}"
+        try:
+            r = self._request_with_rotation('GET', url, headers=headers, timeout=getattr(self.session, 'request_timeout', 15))
+            if r.status_code == 200:
+                return r.json()
+            else:
+                return {'status': r.status_code, 'text': r.text}
+        except Exception as e:
+            logger.debug('get_resume exception for %s: %s', resume_id, e)
+            return {'error': str(e)}
+
+    def try_message_eps(self, personal_token: str, resume_id: int):
+        headers = {'Authorization': f'Bearer {personal_token}'}
+        eps = [
+            f"/messenger/v1/resumes/{resume_id}/chats",
+            f"/messenger/v2/resumes/{resume_id}/chats",
+            f"/job/v1/resumes/{resume_id}/messages",
+            f"/job/v1/resumes/{resume_id}/chat",
+            f"/messenger/chats?resume_id={resume_id}",
+            f"/messenger/v1/chats?resume_id={resume_id}",
+        ]
+        for ep in eps:
+            url = f"{BASE_URL}{ep}"
+            try:
+                r = self._request_with_rotation('GET', url, headers=headers, timeout=getattr(self.session, 'request_timeout', 8))
+                if r.status_code == 200:
+                    try:
+                        return {'endpoint': ep, 'data': r.json()}
+                    except Exception:
+                        return {'endpoint': ep, 'data': r.text}
+                elif r.status_code in (401, 403):
+                    return {'endpoint': ep, 'status': r.status_code, 'error': r.text}
+            except Exception as e:
+                logger.debug('messages probe failed %s -> %s', url, e)
+                continue
+        return None
+
+
+def extract_message_insights(msg_data):
+    insights = []
+    if not msg_data:
+        return insights
+    candidates = []
+    if isinstance(msg_data, dict):
+        for k in ('messages', 'chats', 'items', 'data'):
+            if k in msg_data and isinstance(msg_data[k], list):
+                candidates = msg_data[k]
+                break
+        if not candidates:
+            for v in msg_data.values():
+                if isinstance(v, list):
+                    candidates = v
+                    break
+    elif isinstance(msg_data, list):
+        candidates = msg_data
+    for it in candidates:
+        info = {}
+        if isinstance(it, dict):
+            for field in ('is_read', 'read', 'status', 'direction', 'from', 'sender', 'user_id'):
+                if field in it:
+                    info[field] = it.get(field)
+            for t in ('created_at', 'timestamp', 'time', 'sent_at'):
+                if t in it:
+                    info['time'] = it.get(t)
+                    break
+        insights.append(info)
+    return insights
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--csv', default=os.path.join(os.getcwd(), 'output', 'already_bought_id.csv'))
+    parser.add_argument('--sample-size', type=int, default=200)
+    parser.add_argument('--personal-token', default=os.environ.get('AVITO_PERSONAL_TOKEN'))
+    parser.add_argument('--no-proxy', action='store_true')
+    args = parser.parse_args()
+
+    pm = ProxyManager()
+    client = AvitoClient(proxy_manager=pm, use_proxy=not args.no_proxy)
+
+    ids = read_ids(args.csv, args.sample_size)
+    if not ids:
+        logger.error('No ids to process')
+        sys.exit(1)
+
+    app_token = client.get_app_token()
+    if not app_token:
+        logger.error('Cannot obtain app token, abort')
+        sys.exit(1)
+    logger.info('App token obtained')
+
+    results = []
+    for i, rid in enumerate(ids, start=1):
+        logger.info('[%d/%d] resume %s', i, len(ids), rid)
+        resume = client.get_resume(app_token, rid)
+        entry = {'resume_id': rid, 'resume': resume}
+        # if resume seems valid and personal token provided - try messages
+        if args.personal_token and isinstance(resume, dict) and resume.get('id'):
+            msg = client.try_message_eps(args.personal_token, rid)
+            entry['messages'] = msg
+            entry['message_insights'] = extract_message_insights(msg['data']) if msg and 'data' in msg else None
+        results.append(entry)
+        # polite pause so we don't hammer API
+        time.sleep(0.25)
+
+    ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+    out = f"resume_messages_{ts}.json"
+    with open(out, 'w', encoding='utf-8') as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+    logger.info('Done. Results saved to %s', out)
+
+
+if __name__ == '__main__':
+    main()

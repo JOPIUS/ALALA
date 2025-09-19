@@ -1,0 +1,10 @@
+# Saved blob links from user (2025-09-20)
+
+blob:https://developers.avito.ru/347e20d3-6769-4e4a-9355-2c9a6fa6a438
+blob:https://developers.avito.ru/a904cd10-33d5-462f-b8dc-3786434bb99b
+blob:https://developers.avito.ru/0830586f-b322-438f-9de2-0f1a394f4eaf
+
+# Note:
+# These are `blob:` URLs (browser-only object URLs). They cannot be fetched directly via HTTP from a script.
+# If you need the content, open each link in the browser (in developer tools) and save the resource to disk, or
+# ask me to guide you through exchanging authorization and saving the underlying resource from the web UI.

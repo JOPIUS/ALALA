@@ -1,0 +1,4 @@
+// Установите в окружении:
+firewall_bypass_enabled = "true"
+auto_proxy_rotation = "true"
+proxy_list = "proxy1:port,proxy2:port,proxy3:port" 

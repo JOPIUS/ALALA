@@ -1,0 +1,380 @@
+{
+  "info": {
+    "name": "Avito OAuth Helper Pro",
+    "_postman_id": "avito-oauth-helper-pro",
+    "description": "Advanced collection for Avito OAuth with firewall detection, proxy rotation, and automatic retry logic for IP blocking issues.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Collection-level pre-request: firewall detection, proxy rotation, and redirect_uri validation",
+          "(function(){",
+          "  // Check if firewall bypass is needed",
+          "  var firewallBypass = pm.environment.get('firewall_bypass_enabled') === 'true';",
+          "  if (firewallBypass) {",
+          "    var currentProxy = pm.environment.get('current_proxy_index') || '0';",
+          "    var proxyList = pm.environment.get('proxy_list') || '';",
+          "    if (proxyList) {",
+          "      var proxies = proxyList.split(',');",
+          "      var proxyIndex = parseInt(currentProxy) % proxies.length;",
+          "      var proxy = proxies[proxyIndex].trim();",
+          "      pm.environment.set('current_proxy', proxy);",
+          "      console.log('Using proxy:', proxy, '(index:', proxyIndex, ')');",
+          "    }",
+          "  }",
+          "  ",
+          "  // Validate redirect_uri against registered_redirect_uri (if set)",
+          "  var reg = pm.environment.get('registered_redirect_uri');",
+          "  if (reg && reg.length>0) {",
+          "    var cur = pm.environment.get('redirect_uri') || '';",
+          "    if (cur !== reg) {",
+          "      pm.environment.set('redirect_uri_valid','false');",
+          "      console.warn('redirect_uri does not match registered_redirect_uri:', cur, '!=', reg);",
+          "      var strictValidation = pm.environment.get('strict_redirect_validation') === 'true';",
+          "      if (strictValidation) {",
+          "        throw new Error('redirect_uri mismatch: environment.redirect_uri != registered_redirect_uri. Set them equal or update registered_redirect_uri.');",
+          "      }",
+          "    } else {",
+          "      pm.environment.set('redirect_uri_valid','true');",
+          "    }",
+          "  } else {",
+          "    pm.environment.unset('redirect_uri_valid');",
+          "  }",
+          "})();"
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "// Collection-level test: detect firewall and handle proxy rotation",
+          "(function(){",
+          "  var responseText = pm.response.text();",
+          "  var isFirewall = responseText.includes('Доступ ограничен') || responseText.includes('firewall') || responseText.includes('captcha');",
+          "  ",
+          "  if (isFirewall || pm.response.code === 429 || pm.response.code === 403) {",
+          "    console.warn('Firewall/blocking detected. Response code:', pm.response.code);",
+          "    pm.environment.set('firewall_detected', 'true');",
+          "    pm.environment.set('last_firewall_time', Date.now().toString());",
+          "    ",
+          "    // Auto-rotate proxy if enabled",
+          "    var autoRotate = pm.environment.get('auto_proxy_rotation') === 'true';",
+          "    if (autoRotate) {",
+          "      var currentIndex = parseInt(pm.environment.get('current_proxy_index') || '0');",
+          "      var newIndex = currentIndex + 1;",
+          "      pm.environment.set('current_proxy_index', newIndex.toString());",
+          "      console.log('Auto-rotated to proxy index:', newIndex);",
+          "      ",
+          "      var maxRetries = parseInt(pm.environment.get('max_proxy_retries') || '3');",
+          "      var retryCount = parseInt(pm.environment.get('current_retry_count') || '0');",
+          "      if (retryCount < maxRetries) {",
+          "        pm.environment.set('current_retry_count', (retryCount + 1).toString());",
+          "        console.log('Will retry with new proxy. Attempt:', retryCount + 1, '/', maxRetries);",
+          "      } else {",
+          "        console.error('Max proxy retries reached. Manual intervention required.');",
+          "        pm.environment.set('retry_exhausted', 'true');",
+          "      }",
+          "    }",
+          "  } else {",
+          "    pm.environment.unset('firewall_detected');",
+          "    pm.environment.set('current_retry_count', '0');",
+          "    pm.environment.unset('retry_exhausted');",
+          "  }",
+          "})();"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Check Firewall Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "User-Agent",
+            "value": "{{user_agent}}"
+          }
+        ],
+        "url": {
+          "raw": "https://avito.ru/ping"
+        },
+        "description": "Quick check to detect if current IP is blocked by Avito firewall. Run this first before OAuth flow."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var responseText = pm.response.text();",
+              "var isBlocked = responseText.includes('Доступ ограничен') || responseText.includes('firewall') || pm.response.code === 429;",
+              "if (isBlocked) {",
+              "  pm.environment.set('firewall_status', 'blocked');",
+              "  console.error('❌ IP is blocked by Avito firewall. Use VPN/proxy or solve captcha in browser.');",
+              "} else {",
+              "  pm.environment.set('firewall_status', 'clear');",
+              "  console.log('✅ IP is not blocked. OAuth flow can proceed.');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Build Authorization URL",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{auth_url}}?response_type=code&client_id={{client_id}}&redirect_uri={{redirect_uri}}&scope={{scopes}}&state={{state}}"
+        },
+        "description": "Generates an authorization URL and saves it to environment variable `auth_url_built`. Open it in your browser or Postman Interceptor / Postman Auth helper to complete flow."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Build a fresh state and authorization URL, save to environment",
+              "(function(){",
+              "  var s = Math.random().toString(36).substring(2, 12);",
+              "  pm.environment.set('state', s);",
+              "  var authBase = pm.environment.get('auth_url') || pm.variables.replaceIn('{{auth_url}}');",
+              "  var clientId = pm.environment.get('client_id') || '';",
+              "  var redirect = pm.environment.get('redirect_uri') || '';",
+              "  var scopes = pm.environment.get('scopes') || '';",
+              "  var url = authBase + '?response_type=code&client_id=' + encodeURIComponent(clientId) + '&redirect_uri=' + encodeURIComponent(redirect) + '&scope=' + encodeURIComponent(scopes) + '&state=' + encodeURIComponent(s);",
+              "  pm.environment.set('auth_url_built', url);",
+              "  console.log('Auth URL built: ' + url);",
+              "})();"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exchange Authorization Code (token)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          },
+          {
+            "key": "Authorization",
+            "value": "{{basic_auth}}"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "authorization_code", "type": "text" },
+            { "key": "code", "value": "{{code}}", "type": "text" },
+            { "key": "redirect_uri", "value": "{{redirect_uri}}", "type": "text" }
+          ]
+        },
+        "url": {
+          "raw": "{{token_url}}"
+        },
+        "description": "Exchanges authorization code for access and refresh tokens. Sends client_id/secret via Basic Auth header (computed in pre-request)."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Compute Basic Auth header from client_id and client_secret (Postman sandbox btoa available)",
+              "(function(){",
+              "  var id = pm.environment.get('client_id') || '';",
+              "  var secret = pm.environment.get('client_secret') || '';",
+              "  var mode = pm.environment.get('token_auth_mode') || 'basic';",
+              "  if (mode === 'basic') {",
+              "    try {",
+              "      var cred = id + ':' + secret;",
+              "      var enc = btoa(cred);",
+              "      pm.environment.set('basic_auth', 'Basic ' + enc);",
+              "    } catch(e) {",
+              "      console.warn('Failed to compute basic auth header:', e);",
+              "      pm.environment.unset('basic_auth');",
+              "    }",
+              "  } else {",
+              "    pm.environment.unset('basic_auth');",
+              "  }",
+              "})();"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Enhanced test with firewall detection and retry logic",
+              "var responseText = pm.response.text();",
+              "var isFirewall = responseText.includes('Доступ ограничен') || responseText.includes('firewall') || responseText.includes('captcha');",
+              "",
+              "if (isFirewall || pm.response.code === 429 || pm.response.code === 403) {",
+              "  console.error('🚫 Firewall detected in token exchange. IP may be blocked.');",
+              "  pm.environment.set('last_token_response', responseText);",
+              "  pm.environment.set('token_exchange_blocked', 'true');",
+              "} else if (pm.response.code !== 200) {",
+              "  console.log('Token exchange response:', responseText);",
+              "  pm.environment.set('last_token_response', responseText);",
+              "  pm.environment.unset('token_exchange_blocked');",
+              "} else {",
+              "  try {",
+              "    var j = pm.response.json();",
+              "    if (j.access_token) {",
+              "      pm.environment.set('access_token', j.access_token);",
+              "      console.log('✅ Access token obtained successfully');",
+              "    }",
+              "    if (j.refresh_token) pm.environment.set('refresh_token', j.refresh_token);",
+              "    pm.environment.set('token_response', JSON.stringify(j));",
+              "    pm.environment.set('oauth_success', 'true');",
+              "    pm.environment.unset('token_exchange_blocked');",
+              "    console.log('Saved access_token and refresh_token to environment');",
+              "  } catch(e) {",
+              "    console.log('Failed to parse JSON from token response:', e);",
+              "  }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Build Loopback Authorization URL",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{auth_url}}?response_type=code&client_id={{client_id}}&redirect_uri={{redirect_uri}}&scope={{scopes}}&state={{state}}"
+        },
+        "description": "Sets `redirect_uri` to the loopback value (`http://{{loopback_host}}:{{loopback_port}}/callback`) and builds an authorization URL for automated local capture."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Build loopback redirect_uri and auth URL",
+              "(function(){",
+              "  var host = pm.environment.get('loopback_host') || '127.0.0.1';",
+              "  var port = pm.environment.get('loopback_port') || '8080';",
+              "  var redirect = 'http://' + host + ':' + port + '/callback';",
+              "  pm.environment.set('redirect_uri', redirect);",
+              "  var s = Math.random().toString(36).substring(2,12);",
+              "  pm.environment.set('state', s);",
+              "  var authBase = pm.environment.get('auth_url') || pm.variables.replaceIn('{{auth_url}}');",
+              "  var clientId = pm.environment.get('client_id') || '';",
+              "  var scopes = pm.environment.get('scopes') || '';",
+              "  var url = authBase + '?response_type=code&client_id=' + encodeURIComponent(clientId) + '&redirect_uri=' + encodeURIComponent(redirect) + '&scope=' + encodeURIComponent(scopes) + '&state=' + encodeURIComponent(s);",
+              "  pm.environment.set('auth_url_built', url);",
+              "  console.log('Loopback redirect_uri set to', redirect);",
+              "  console.log('Auth URL built: ' + url);",
+              "})();"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messages API",
+      "item": [
+        {
+          "name": "Get Chats List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "https://api.avito.ru/messenger/v1/accounts/{{account_id}}/chats?limit={{chat_limit}}&offset={{chat_offset}}",
+              "query": [
+                { "key": "limit", "value": "{{chat_limit}}" },
+                { "key": "offset", "value": "{{chat_offset}}" }
+              ]
+            },
+            "description": "Get list of chats for the authenticated user. Set account_id, chat_limit, and chat_offset in environment."
+          }
+        },
+        {
+          "name": "Get Messages from Chat",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "https://api.avito.ru/messenger/v1/accounts/{{account_id}}/chats/{{chat_id}}/messages?limit={{message_limit}}&offset={{message_offset}}",
+              "query": [
+                { "key": "limit", "value": "{{message_limit}}" },
+                { "key": "offset", "value": "{{message_offset}}" }
+              ]
+            },
+            "description": "Get messages from a specific chat. Set chat_id, message_limit, and message_offset in environment."
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": {\n    \"text\": \"{{message_text}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "https://api.avito.ru/messenger/v1/accounts/{{account_id}}/chats/{{chat_id}}/messages"
+            },
+            "description": "Send a text message to a specific chat. Set message_text in environment."
+          }
+        },
+        {
+          "name": "Get Account Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "https://api.avito.ru/messenger/v1/accounts/{{account_id}}"
+            },
+            "description": "Get account information for the authenticated user."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check API (example) - Get resume sample",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "https://api.avito.ru/job/v1/resumes/{{sample_resume_id}}",
+          "protocol": "https",
+          "host": ["api","avito","ru"],
+          "path": ["job","v1","resumes","{{sample_resume_id}}"]
+        },
+        "description": "Example API call using obtained access token. Replace `sample_resume_id` with a real resume id."
+      }
+    }
+  ],
+  "variable": []
+}
