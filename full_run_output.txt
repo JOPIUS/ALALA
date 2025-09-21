@@ -1,0 +1,304 @@
+ЁЯФз ╨Э╨░╤Б╤В╤А╨╛╨╣╨║╨╕: ╨╗╨╕╨╝╨╕╤В=200, ╨┐╨╛╤В╨╛╨║╨╛╨▓=8, ╤З╨░╤Б╨╛╨▓╨╛╨╣_╨┐╨╛╤П╤Б=Europe/Moscow
+ЁЯФД ╨Ч╨░╨│╤А╤Г╨╖╨║╨░ ╨░╨║╤В╤Г╨░╨╗╤М╨╜╤Л╤Е ╤З╨░╤В╨╛╨▓ ╤З╨╡╤А╨╡╨╖ API...
+ЁЯФС access_token ╨╛╨▒╨╜╨╛╨▓╨╗╤С╨╜
+ЁЯУе ╨Ч╨░╨│╤А╤Г╨╢╨░╨╡╨╝ ╨▓╤Б╨╡ ╤З╨░╤В╤Л...
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 100
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 200
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 300
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 400
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 500
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 600
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 700
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 800
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 900
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 1000
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ ╤З╨░╤В╨╛╨▓: +100, ╨▓╤Б╨╡╨│╨╛ ╨▓ ╨┐╨░╨║╨╡╤В╨╡: 1100
+ЁЯУи ╨Ч╨░╨│╤А╤Г╨╢╨░╨╡╨╝ ╨╜╨╡╨┐╤А╨╛╤З╨╕╤В╨░╨╜╨╜╤Л╨╡ ╤З╨░╤В╤Л ╨╛╤В╨┤╨╡╨╗╤М╨╜╨╛...
+тЪая╕П ╨Ю╤И╨╕╨▒╨║╨░ ╨╖╨░╨│╤А╤Г╨╖╨║╨╕ ╤З╨░╤В╨╛╨▓ (offset 0, unread_only=True): 400
+тЪая╕П ╨Т╨╛╨╖╨╝╨╛╨╢╨╜╨╛, ╨┤╨╛╤Б╤В╨╕╨│╨╜╤Г╤В ╨╗╨╕╨╝╨╕╤В API ╨┤╨╗╤П ╤Н╤В╨╛╨│╨╛ ╤Д╨╕╨╗╤М╤В╤А╨░
+ЁЯФД ╨Я╤А╨╛╨▒╤Г╨╡╨╝ ╨╖╨░╨│╤А╤Г╨╖╨╕╤В╤М ╤З╨░╤В╤Л ╤А╨░╨╖╨╜╤Л╤Е ╤В╨╕╨┐╨╛╨▓...
+тЪая╕П ╨в╨╕╨┐ ╤З╨░╤В╨╛╨▓ i2u ╨╜╨╡ ╨┐╨╛╨┤╨┤╨╡╤А╨╢╨╕╨▓╨░╨╡╤В╤Б╤П: 400
+тЪая╕П ╨в╨╕╨┐ ╤З╨░╤В╨╛╨▓ public ╨╜╨╡ ╨┐╨╛╨┤╨┤╨╡╤А╨╢╨╕╨▓╨░╨╡╤В╤Б╤П: 400
+ЁЯФД ╨Я╤А╨╛╨▒╤Г╨╡╨╝ ╨╖╨░╨│╤А╤Г╨╖╨╕╤В╤М ╨┤╨╛╨┐╨╛╨╗╨╜╨╕╤В╨╡╨╗╤М╨╜╤Л╨╡ ╤З╨░╤В╤Л ╤З╨╡╤А╨╡╨╖ v1 API...
+тЪая╕П v1 API ╨╜╨╡╨┤╨╛╤Б╤В╤Г╨┐╨╡╨╜: 404
+тЬЕ ╨Ш╤В╨╛╨│╨╛ ╤Г╨╜╨╕╨║╨░╨╗╤М╨╜╤Л╤Е ╤З╨░╤В╨╛╨▓: 1100
+ЁЯОп ╨Ю╤В╨╗╨╕╤З╨╜╤Л╨╣ ╤А╨╡╨╖╤Г╨╗╤М╤В╨░╤В! ╨Я╨╛╨╗╤Г╤З╨╡╨╜╨╛ ╨╝╨░╨║╤Б╨╕╨╝╨░╨╗╤М╨╜╨╛╨╡ ╨║╨╛╨╗╨╕╤З╨╡╤Б╤В╨▓╨╛ ╤З╨░╤В╨╛╨▓
+тЬЕ ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ 1100 ╤З╨░╤В╨╛╨▓ ╤З╨╡╤А╨╡╨╖ API
+ЁЯУК ╨Ч╨░╨│╤А╤Г╨╢╨╡╨╜╨╛ 1100 ╤З╨░╤В╨╛╨▓ ╨┤╨╗╤П ╨░╨╜╨░╨╗╨╕╨╖╨░
+
+╨Ю╤В╨║╤А╤Л╨╗╤Б╤П ╨▒╤А╨░╤Г╨╖╨╡╤А. ╨Т╨╛╨╣╨┤╨╕╤В╨╡ ╨▓ Avito ╨╕ ╨╜╨░╨╢╨╝╨╕╤В╨╡ Enter ╨╖╨┤╨╡╤Б╤М...
+(╨в╨╡╨║╤Г╤Й╨╕╨╣ TZ: Europe/Moscow)
+╨б╤В╨╛╨┐╨╗╨╕╤Б╤В ╨╕╨╖: C:\ManekiNeko\AVITO_API\output
+ЁЯЪА ╨Э╨░╤З╨╕╨╜╨░╤О ╨┐╨░╤А╨░╨╗╨╗╨╡╨╗╤М╨╜╤Г╤О ╨╛╨▒╤А╨░╨▒╨╛╤В╨║╤Г 200 ╤А╨╡╨╖╤О╨╝╨╡ ╨▓ 8 ╨┐╨╛╤В╨╛╨║╨╛╨▓...
+тЬЕ Chat u2i-6iaOduS5lb4KCd6D5GmgsQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-M3vJd~5QLuEp33PTz2l09w not found in loaded data
+тЬЕ Chat u2i-GWruY_zzuUvlQoGcslONYw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-z4t0QKthgo_hIE3Aq2lDxg: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-rHGR36qY3XaAJEyGrnlL9g: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-Sx9XcT4DzgJixNIenYjAbw not found in loaded data
+тЬЕ Chat u2i-DCnhp2c2iXcNfgv3i6SVPg: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-cAhI6eqiFmwYO8uEw_asBQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-SwEcScC5olXwgoWHtLB4JA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-4HJpx4pLzGlLXMkgoPGKlg: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 10/200 ╤А╨╡╨╖╤О╨╝╨╡ (5.0%)
+тЬЕ Chat u2i-DSItTn15ybeOtOA_fk4vYA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-LgCBVm_y9~Pkeo6TmxATWw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-437I3pr0YWcuFTqO2t9uFw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-DSrZvdYnX33gbmq5Kxma~w not found in loaded data
+тЪая╕П  Chat u2i-uHga0QrV3o9zRK2zuWMQhw not found in loaded data
+тЬЕ Chat u2i-NiQGPAnINEiTTJ56LKCKYw: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-rFazoQLZ~bAscH0uO6tz_w not found in loaded data
+тЬЕ Chat u2i-Kl0NV~l2NpkKFqalM6CaMw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-w0aSBRLUZ44gBJXYrR9JKA not found in loaded data
+тЪая╕П  Chat u2i-0624UrQnPyz4Mi563jv3xg not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 20/200 ╤А╨╡╨╖╤О╨╝╨╡ (10.0%)
+тЪая╕П  Chat u2i-45i1smWOAMn7nphrarYVkQ not found in loaded data
+тЬЕ Chat u2i-vElr5iMj4KCcetdXkmVOZA: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-oteWF_bydncJ1BothWtFzQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-bPWnDKU3HjVm8f~KrwEaFw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-Km6zbxuLc~~3CiF3UPkdNA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-ccggm9rElZhDWbqrnrZv2w: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  GET /job/v1/resumes/7598028818/contacts тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7598028818 is not available"}}
+...
+тЬЕ Chat u2i-0eKUSewOewMS5GNxxRL_mw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  GET /job/v1/resumes/7598028818/contacts/ тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7598028818 is not available"}}
+...
+тЬЕ Chat u2i-OI3wJ7Bv1qm9jsaxy4rZJw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-M7G37nB1wNWfVfGsKqKrYw: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 30/200 ╤А╨╡╨╖╤О╨╝╨╡ (15.0%)
+тЬЕ Chat u2i-9Cz9zX0u2ZK6U4Czk2K8dw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-KeedoLAIINOG_S~8gFwBRA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-dr3h75ILeIiMMemtLXl0dg: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨╜╨╡ ╨╛╤В╨▓╨╡╤В╨╕╨╗ | ╨Т╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-VJ8SKTsw_2gzgpzK0m3gmQ: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-pDsp0YTjGbRvpHAznVYo2g: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-Vy7AlXYcktNuqlgxwds8eA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-y8esaVFSSw7dLH3cBGTgjw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-FFH5FW0bVJfPKAUSc9y4SA: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-M~s8QmmE1aF3ZpQg8j03tA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-tuKbOThHSlWMDzs_mHu4sA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 40/200 ╤А╨╡╨╖╤О╨╝╨╡ (20.0%)
+тЬЕ Chat u2i-2Y2K7d_tfdm2N7HtFZGv1A: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  GET /job/v1/resumes/7578259149/contacts тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7578259149 is not available"}}
+...
+тЪая╕П  Chat u2i-g2iyE~khNrg1yr9Hqw34nw not found in loaded data
+тЪая╕П  GET /job/v1/resumes/7578259149/contacts/ тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7578259149 is not available"}}
+...
+тЬЕ Chat u2i-P8GiT5dzYjvjfZkMMlCb3A: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-A8Biloyb3J5NeCNCNFRGlg: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-_Oe~5dapoFXFQS6O_dGC_Q: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨╜╨╡ ╨╛╤В╨▓╨╡╤В╨╕╨╗ | ╨Т╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-cgQfkC~li4xSwTcXrn7aLA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-X4TJD5jcc7ApN09DNEqonQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-QzoXeCmavTRNTbaWY0Wx7Q not found in loaded data
+тЬЕ Chat u2i-aug9qo6SptsGLY6HeC_QdQ: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 50/200 ╤А╨╡╨╖╤О╨╝╨╡ (25.0%)
+тЬЕ Chat u2i-GOIgM_fzMPvG8tiOaZA9Ig: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-4Y8RWX6kA2_NSBJD8zmd9A: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-94gaCKsDfNzZPTUsDuZB2A: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-5SV0LlxGRkDQ7DcndNmzRg: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-_B5dCa20AkYMOPSos_jt~g: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-hDcJdZLaHV5RwpYywm0fTw not found in loaded data
+тЬЕ Chat u2i-EOU13pG6s2gKHT7rd88Skw: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-_O3l3kCfn4~HHrT2XiAWng: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-U8UGwqPRdP3GGQrKYyIYaw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-o6wWW3g5AU3HOLPvqxgKug: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 60/200 ╤А╨╡╨╖╤О╨╝╨╡ (30.0%)
+тЬЕ Chat u2i-cYEgZ1X551E8amQmAr1ZPw: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-A88EG8o3na2n0CBan4dJsQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-I85fbWrB2OcsQtBZUuSa8w: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  GET /job/v1/resumes/7639780464/contacts тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7639780464 is not available"}}
+...
+тЬЕ Chat u2i-Oiri524PgkYiNv8gK3GRBQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  GET /job/v1/resumes/7639780464/contacts/ тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7639780464 is not available"}}
+...
+тЪая╕П  Chat u2i-0S97Utk0CPIevWBSnTYVqA not found in loaded data
+тЬЕ Chat u2i-1d3_NQru0kQpuzoBIlm7dQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-smqpEP~ce4t3sEICM8eRYA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-CU6BVuoYDe7jP~~dMBDiiw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-G7Y3rv6d27jwHU2iQyIAbw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 70/200 ╤А╨╡╨╖╤О╨╝╨╡ (35.0%)
+тЬЕ Chat u2i-oCLvvLWxBRjaQ6VHGwmNiA: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-XCx7_S7vG9LYPU6Z9WPVQA not found in loaded data
+тЬЕ Chat u2i-EGFtVdUaFHOcnhNpipBtIA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-yYFafRO1DdWV4cn48IF0Lg: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-6T1bGFbDly7YDbadsFXopg: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-Yb0Qz9IkuFUHEIEBEax2oA: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-TiH5_Pr~Vj3_7PctB5Vf6Q: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-cyrjjpuC2irIhvzxgAhjEQ not found in loaded data
+тЬЕ Chat u2i-p0ktU7QwUyPjS00iOZqi4w: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-dnhVK76ByhBOQhioQuROdQ: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 80/200 ╤А╨╡╨╖╤О╨╝╨╡ (40.0%)
+тЬЕ Chat u2i-GXR55twFZmh2I93emP0ZKw: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-uHJXK53FrCmiPnk9AJimwg: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-Bpnv6ebLi6RuMExZUglcqg: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-ux_OrlkQjbutWsbcuOX2Bw: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-UBsRMQsCLiQT7YmZ1A9DXg: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  GET /job/v1/resumes/7595457369/contacts тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7595457369 is not available"}}
+...
+тЪая╕П  GET /job/v1/resumes/7619134555/contacts тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7619134555 is not available"}}
+...
+тЪая╕П  Chat u2i-WBEQpOyffBqQlcpaIGakCQ not found in loaded data
+тЪая╕П  GET /job/v1/resumes/7595457369/contacts/ тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7595457369 is not available"}}
+...
+тЪая╕П  GET /job/v1/resumes/7619134555/contacts/ тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7619134555 is not available"}}
+...
+тЬЕ Chat u2i-AEh~88UPOBhwX5_8Q6oAew: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-mFxg0NbG5ellckoisU0htQ not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 90/200 ╤А╨╡╨╖╤О╨╝╨╡ (45.0%)
+тЪая╕П  Chat u2i-bvxz~2gUXgiSNiJ0HtP1~g not found in loaded data
+тЬЕ Chat u2i-W_Y_tyNWs8BI6Oz~IdMvLQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-s98OK8IQxHWWxjuY0lSmNQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-cJjD4CzVxVaH8vhTZZ1NNw not found in loaded data
+тЬЕ Chat u2i-vpHG8lChoh_iMLdIYhN5wg: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-fDZmeetAFc1wa1glrIlhTg: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-2hWxfH~xVjMtFUht~97Qtw: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  GET /job/v1/resumes/7638775684/contacts тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7638775684 is not available"}}
+...
+тЬЕ Chat u2i-tNBxJDLKH_TA7dFe35zggw: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  GET /job/v1/resumes/7638775684/contacts/ тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7638775684 is not available"}}
+...
+тЬЕ Chat u2i-QpEPfrfcAl4BaHXXKZMkzQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 100/200 ╤А╨╡╨╖╤О╨╝╨╡ (50.0%)
+тЪая╕П  Chat u2i-Fs7xLRtgVCL09_3CHTSkFw not found in loaded data
+тЪая╕П  Chat u2i-skpIxpBBrAH8e7hUQLI3CQ not found in loaded data
+тЪая╕П  Chat u2i-n0~qls64hCipEHT8MZ~iOg not found in loaded data
+тЪая╕П  Chat u2i-7WFSfhGMiXNV8RVMrG7bOg not found in loaded data
+тЪая╕П  Chat u2i-kjlhziMn~UaANXUkMJwfOg not found in loaded data
+тЪая╕П  Chat u2i-qcIxryZiT72ceMgO9EgF4g not found in loaded data
+тЪая╕П  Chat u2i-SLYbZLUV_cf8zaBaaat5dA not found in loaded data
+тЪая╕П  Chat u2i-Qk_BWqv5tiL14EMr8aJFyQ not found in loaded data
+тЪая╕П  Chat u2i-nEH_xzs4RcBS3fuK0pnwBg not found in loaded data
+тЪая╕П  Chat u2i-x3~Taabf8ZHNDrWkiNRItA not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 110/200 ╤А╨╡╨╖╤О╨╝╨╡ (55.0%)
+тЪая╕П  Chat u2i-vh9WN76Feu7mShIEIAMwTA not found in loaded data
+тЪая╕П  Chat u2i-theQ3zLRNRRlLqKEL0gv7Q not found in loaded data
+тЪая╕П  Chat u2i-jw26T99P3iLp1l~_EuaYjg not found in loaded data
+тЪая╕П  Chat u2i-RxJzW3fwuVcXiGniEaEbag not found in loaded data
+тЪая╕П  Chat u2i-55SapPeX~gTmuuq6ckqBuA not found in loaded data
+тЪая╕П  Chat u2i-SPzXEsqqZpF79kt12HVomQ not found in loaded data
+тЪая╕П  Chat u2i-NArv1faaDr8zM4toROgQQA not found in loaded data
+тЪая╕П  Chat u2i-Xr9Q~86bvQ0z~yE5rczKgA not found in loaded data
+тЬЕ Chat u2i-ZHtlo2s3i1_5SLJ0YE7BzA: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЬЕ Chat u2i-8xi3nHE___0EkFR97nUGNg: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 120/200 ╤А╨╡╨╖╤О╨╝╨╡ (60.0%)
+тЪая╕П  Chat u2i-WcvZtNVj5KxR0VNtqvBsYA not found in loaded data
+тЬЕ Chat u2i-qXLK_IUjOwzLA6KxfYSnMw: ╨Я╤А╨╛╤З╨╕╤В╨░╨╗/╨Ю╤В╨▓╨╡╤В╨╕╨╗ | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-6RBp4UukuFU2q1OqK3ktXw not found in loaded data
+тЬЕ Chat u2i-okc6EMrqm96tLLbszt80MA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-9tQ8EXojvjxois4FcSIwUA not found in loaded data
+тЪая╕П  GET /job/v1/resumes/7581661413/contacts тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7581661413 is not available"}}
+...
+тЪая╕П  Chat u2i-op02Eza9u1MiqJ9sCjtL5A not found in loaded data
+тЪая╕П  Chat u2i-Iag9CcFglL4v2jgGxEd4Hw not found in loaded data
+тЪая╕П  GET /job/v1/resumes/7581661413/contacts/ тЖТ HTTP 400: {"error":{"code":400,"message":"resume with id 7581661413 is not available"}}
+...
+тЪая╕П  Chat u2i-Y2E_blncCKzYq1BJmMjwWw not found in loaded data
+тЪая╕П  Chat u2i-2cGHVBWMxKtasDAbuxFUtg not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 130/200 ╤А╨╡╨╖╤О╨╝╨╡ (65.0%)
+тЬЕ Chat u2i-VFq6nkkB8orxUkksAwb89Q: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-Qs8LKkN9gQEKe6ctuyaGHQ not found in loaded data
+тЬЕ Chat u2i-LE78OabHfHkzkL9_WMjvUQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-hCDAtrxNc5v3oc7CgYmkqg not found in loaded data
+тЪая╕П  Chat u2i-zetOaXisXyUMrGvQm0iS2Q not found in loaded data
+тЬЕ Chat u2i-4uw3QFy4Nweufu_~9lVvMQ: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-p5Fbu3NFHNP3Ic79mciHQg not found in loaded data
+тЬЕ Chat u2i-5dTyO~7WSNlNE2mh1ygOAA: ╨Э╨╡ ╨▓╤Л╤Б╤Л╨╗╨░╨╗╨╕ ╤Б╨╛╨╛╨▒╤Й╨╡╨╜╨╕╤П | ╨Ш╤Б╤Е╨╛╨┤╤П╤Й╨╡╨╡
+тЪая╕П  Chat u2i-T2bWNXmOP2j5rE9LrBTIOQ not found in loaded data
+тЪая╕П  Chat u2i-~Q85m~bhg_FWqhYyGBskeg not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 140/200 ╤А╨╡╨╖╤О╨╝╨╡ (70.0%)
+тЪая╕П  Chat u2i-EuNMqKfjqKTm3dYsY4Z8aQ not found in loaded data
+тЪая╕П  Chat u2i-bRwR7H1vOExHjqU0kNNlJw not found in loaded data
+тЪая╕П  Chat u2i-r7OrNL2BN69ECNzazt97Uw not found in loaded data
+тЪая╕П  Chat u2i-Zo8k6nwkaMh5yuX8kP9xTg not found in loaded data
+тЪая╕П  Chat u2i-T~1~dPLCAdze0hN~lTvPyw not found in loaded data
+тЪая╕П  Chat u2i-Vzokn365ZpqmBy4oT4lwSw not found in loaded data
+тЪая╕П  Chat u2i-OohMQt94kh2WOtKdIJd3Rw not found in loaded data
+тЪая╕П  Chat u2i-7iRTaGVtGLV2O2~IPbVZ0w not found in loaded data
+тЪая╕П  Chat u2i-_dc7alki9TiBpl5RCFGFmQ not found in loaded data
+тЪая╕П  Chat u2i-USc5W9X~YiVjR5bgW6joeQ not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 150/200 ╤А╨╡╨╖╤О╨╝╨╡ (75.0%)
+тЪая╕П  Chat u2i-5k5QpvGHVlEpA3qoqH~HVA not found in loaded data
+тЪая╕П  Chat u2i-RaRL0ZGyxbwAknBZz1Rc7w not found in loaded data
+тЪая╕П  Chat u2i-S_iRlbmfqBDuVg__zfuYCw not found in loaded data
+тЪая╕П  Chat u2i-1qVH~V7FWxKkzCtOsnizzw not found in loaded data
+тЪая╕П  Chat u2i-Lql45J9ImAzes5uOk0wAVQ not found in loaded data
+тЪая╕П  Chat u2i-oBzgiIArokr2ya5v8gAoyQ not found in loaded data
+тЪая╕П  Chat u2i-dAaUscT~sgziJ2LcNOe9qg not found in loaded data
+тЪая╕П  Chat u2i-spbgstHLEvMq0EcZ18zj5w not found in loaded data
+тЪая╕П  Chat u2i-AOC2EQexghbXpO~Fn08dvA not found in loaded data
+тЪая╕П  Chat u2i-8DLFzfmm~f8kq9t85wMsEw not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 160/200 ╤А╨╡╨╖╤О╨╝╨╡ (80.0%)
+тЪая╕П  Chat u2i-Xp2dUnkG058jCtposEITUQ not found in loaded data
+тЪая╕П  Chat u2i-OhD0iSX~x3neyo9aBDl3jQ not found in loaded data
+тЪая╕П  Chat u2i-AFscm4IQBF_81lz9~imxOA not found in loaded data
+тЪая╕П  Chat u2i-9xrNDkqRDDuISMy52ahFhQ not found in loaded data
+тЪая╕П  Chat u2i-9pPW5IUNd8xBd1~YaTTBRw not found in loaded data
+тЪая╕П  Chat u2i-qS0TlSI0J4sIS6cGlHinUA not found in loaded data
+тЪая╕П  Chat u2i-7AgFbVEbjJbXBWd8Bk1jug not found in loaded data
+тЪая╕П  Chat u2i-C5LKWbZ~UEhny8N8AnrUmg not found in loaded data
+тЪая╕П  Chat u2i-44zIYewuiEy9ntLQ2oO3EA not found in loaded data
+тЪая╕П  Chat u2i-oM2Pq0T2EwXQXm4ZqCunLQ not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 170/200 ╤А╨╡╨╖╤О╨╝╨╡ (85.0%)
+тЪая╕П  Chat u2i-E3blqXSpQPE9D_Gwwb7R1w not found in loaded data
+тЪая╕П  Chat u2i-eZKN3IHihyiFSzWPbIqbag not found in loaded data
+тЪая╕П  Chat u2i-fRcwzA21tupoO2Qk2DOFZA not found in loaded data
+тЪая╕П  Chat u2i-RNE0f55tfvYHn~MqaYgqkw not found in loaded data
+тЪая╕П  Chat u2i-IvGOCDpe4bTcxtCpcXvAFg not found in loaded data
+тЪая╕П  Chat u2i-mSSEKy2Xh9~NIphtg3ntDA not found in loaded data
+тЪая╕П  Chat u2i-KwCPE0T8DTofemWeyKdPNg not found in loaded data
+тЪая╕П  Chat u2i-b~jYYFQBnJujI81NPat38A not found in loaded data
+тЪая╕П  Chat u2i-O8H0jQhCIpA23bLQ908piw not found in loaded data
+тЪая╕П  Chat u2i-k7KqJ~w4_3gBHLE2hkPRpw not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 180/200 ╤А╨╡╨╖╤О╨╝╨╡ (90.0%)
+тЪая╕П  Chat u2i-kSbjfc7nFNbBbSRqUwo2bw not found in loaded data
+тЪая╕П  Chat u2i-a5Br_x9~Yw1ZiIOnre7cMA not found in loaded data
+тЪая╕П  Chat u2i-47jLkfo_CS~BUY19LUwmtA not found in loaded data
+тЪая╕П  Chat u2i-zaICqlW4Pw2x0lgmh_8aXg not found in loaded data
+тЪая╕П  Chat u2i-c0wyj2fQmb7SzRgl79ZSyg not found in loaded data
+тЪая╕П  Chat u2i-tXHCFmWwNwE6tYM0~7eokA not found in loaded data
+тЪая╕П  Chat u2i-15tYUN3j0K5TTwEe15NarA not found in loaded data
+тЪая╕П  Chat u2i-ESbfinl1P4k~jXwJHks4NQ not found in loaded data
+тЪая╕П  Chat u2i-FzdavVhxmWoNaGC1QvsbJQ not found in loaded data
+тЪая╕П  Chat u2i-ciTL2WWQnYQrYGSIsLfhYA not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 190/200 ╤А╨╡╨╖╤О╨╝╨╡ (95.0%)
+тЪая╕П  Chat u2i-KeLnS8LGuaI1iKqlD8EEVA not found in loaded data
+тЪая╕П  Chat u2i-X_PC~hy00dO0gAFilNBfmQ not found in loaded data
+тЪая╕П  Chat u2i-xPEMyxcW7vVLJSbP6zO26A not found in loaded data
+тЪая╕П  Chat u2i-ItuCQuTA1NTxKuXXGI4hzg not found in loaded data
+тЪая╕П  Chat u2i-W9UjTQtfejwtUQAwQsSIjA not found in loaded data
+тЪая╕П  Chat u2i-Gv2G1O6cCk38MwgrPEnGNA not found in loaded data
+тЪая╕П  Chat u2i-qjJtGGZcf0MQyMID5GtnqA not found in loaded data
+тЪая╕П  Chat u2i-ehzoT7p3hQ5oAlLT5u5Ffg not found in loaded data
+тЪая╕П  Chat u2i-Gzn8OwodcAdvKQBw1TjcyA not found in loaded data
+тЪая╕П  Chat u2i-S_CQB8aL98_duBIa0NtCHg not found in loaded data
+   тЬЕ ╨Ю╨▒╤А╨░╨▒╨╛╤В╨░╨╜╨╛: 200/200 ╤А╨╡╨╖╤О╨╝╨╡ (100.0%)
+ЁЯОЙ ╨Я╨░╤А╨░╨╗╨╗╨╡╨╗╤М╨╜╨░╤П ╨╛╨▒╤А╨░╨▒╨╛╤В╨║╨░ ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░: 200 ╤А╨╡╨╖╤О╨╝╨╡
+ЁЯУЕ ╨Ы╨╕╤Б╤В '╨╜╨░_╤Б╨╡╨│╨╛╨┤╨╜╤П': 3 ╨╖╨░╨┐╨╕╤Б╨╡╨╣ (24 ╤З╨░╤Б╨░, ╨▒╨╡╨╖ ╤Б╤В╨╛╨┐╨╗╨╕╤Б╤В╨░, ╨▒╨╡╨╖ ╨╕╤Б╨║╨╗╤О╤З╨╡╨╜╨╜╤Л╤Е ╤А╨╡╨│╨╕╨╛╨╜╨╛╨▓)
+ЁЯТм ╨Ы╨╕╤Б╤В '╨Ъ╨╛╨╝╤Г_╨╜╨╡_╨┐╨╕╤Б╨░╨╗╨╕': 33 ╨╖╨░╨┐╨╕╤Б╨╡╨╣ (╨▓╨║╨╗╤О╤З╨░╤П ╤Б╤В╨╛╨┐-╨╗╨╕╤Б╤В)
+MHTML ╤Г╨┤╨░╨╗╤С╨╜: C:\ManekiNeko\AVITO_API\OpenAPI-Specification\saved_pages\avito_paid_cvs_20250921-213818.mhtml
+
+ЁЯУЛ ╨б╤В╨░╤В╨╕╤Б╤В╨╕╨║╨░ ╤Б╤В╨╛╨┐╨╗╨╕╤Б╤В╨░:
+   ╨Ю╨▒╤Й╨╕╨╣ ╤А╨░╨╖╨╝╨╡╤А: 6990 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+   ╨Ш╤Б╨║╨╗╤О╤З╨╡╨╜╨╛ ╨╖╨░╨┐╨╕╤Б╨╡╨╣: 38
+   ╨д╨░╨╣╨╗╤Л ╨╕╤Б╤В╨╛╤З╨╜╨╕╨║╨╕:
+     тАв 13,09,2025_@Kirill_Gordeziani_╨Я╨╛╨╗╨░╤В╨╕_╨в╨╡╤Б╤В_40.xlsx: 40 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 15.09.2025_@Kirill_Gordeziani_for_polati_call_centre_test_1.xlsx: 1303 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 15_09_2025_@Kirill_Gordeziani_for_polati_call_centre_test_3_5K.xlsx: 5055 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_07_28_09_11_paid_cvs_parsed.xlsx: 21 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_07_29_07_35_paid_cvs_parsed.xlsx: 55 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_07_30_07_16_paid_cvs_parsed.xlsx: 121 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_07_31_11_37_paid_cvs_parsed.xlsx: 167 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_07_31_19_27_paid_cvs_parsed.xlsx: 167 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_08_01_06_41_paid_cvs_parsed.xlsx: 167 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_08_01_07_05_paid_cvs_parsed.xlsx: 195 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_08_01_07_55_paid_cvs_parsed.xlsx: 195 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_08_02_06_52_paid_cvs_parsed.xlsx: 245 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_08_03_08_52_paid_cvs_parsed.xlsx: 245 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_08_03_11_15_paid_cvs_parsed.xlsx: 258 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_08_03_12_25_paid_cvs_parsed.xlsx: 270 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_09_01_16_44_paid_cvs_parsed.xlsx: 592 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_09_05_14_29_paid_cvs_parsed.xlsx: 592 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_09_06_10_07_paid_cvs_parsed.xlsx: 592 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_09_06_10_11_paid_cvs_parsed.xlsx: 592 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+     тАв 2025_09_06_10_17_paid_cvs_parsed.xlsx: 592 ╨╖╨░╨┐╨╕╤Б╨╡╨╣
+
+ЁЯУК Excel: C:\ManekiNeko\AVITO_API\output\21092025_╨Т╤Л╨│╤А╤Г╨╖╨║╨░_╨Р╨Ь╨Ю_38_45.xlsx

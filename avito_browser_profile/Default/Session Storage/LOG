@@ -1,3 +1,6 @@
-2025/09/21-21:17:43.262 61c8 Reusing MANIFEST C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Session Storage/MANIFEST-000001
-2025/09/21-21:17:43.263 61c8 Recovering log #3
-2025/09/21-21:17:43.268 61c8 Reusing old log C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Session Storage/000003.log 
+2025/09/21-22:00:00.762 15e0 Reusing MANIFEST C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Session Storage/MANIFEST-000001
+2025/09/21-22:00:00.764 15e0 Recovering log #3
+2025/09/21-22:00:00.767 15e0 Reusing old log C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Session Storage/000003.log 
+2025/09/21-22:00:02.362 60e4 Level-0 table #5: started
+2025/09/21-22:00:02.371 60e4 Level-0 table #5: 13616 bytes OK
+2025/09/21-22:00:02.374 60e4 Delete type=0 #3

@@ -1,25 +1,25 @@
-2025/09/21-21:17:44.750 78d4 Reusing MANIFEST C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\IndexedDB\https_www.avito.ru_0.indexeddb.leveldb/MANIFEST-000001
-2025/09/21-21:17:44.751 78d4 Recovering log #93
-2025/09/21-21:17:44.751 78d4 Reusing old log C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\IndexedDB\https_www.avito.ru_0.indexeddb.leveldb/000093.log 
-2025/09/21-21:17:44.752 78d4 Delete type=2 #92
-2025/09/21-21:17:44.865 5ee8 Level-0 table #98: started
-2025/09/21-21:17:44.867 5ee8 Level-0 table #98: 1473 bytes OK
-2025/09/21-21:17:44.868 5ee8 Delete type=0 #93
-2025/09/21-21:17:44.869 769c Manual compaction at level-0 from '\x00(\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00)\x00\x00\x00' @ 0 : 0; will stop at '\x00(\x00\x00\x05' @ 1770 : 1
-2025/09/21-21:17:44.869 769c Compacting 1@0 + 1@1 files
-2025/09/21-21:17:44.872 769c Generated table #99@0: 396 keys, 9419 bytes
-2025/09/21-21:17:44.872 769c Compacted 1@0 + 1@1 files => 9419 bytes
-2025/09/21-21:17:44.873 769c compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/09/21-21:17:44.873 769c Delete type=2 #98
-2025/09/21-21:17:44.874 769c Manual compaction at level-0 from '\x00(\x00\x00\x05' @ 1770 : 1 .. '\x00)\x00\x00\x00' @ 0 : 0; will stop at (end)
-2025/09/21-21:17:53.791 78d4 Level-0 table #101: started
-2025/09/21-21:17:53.792 78d4 Level-0 table #101: 1490 bytes OK
-2025/09/21-21:17:53.793 78d4 Delete type=2 #95
-2025/09/21-21:17:53.793 78d4 Delete type=0 #97
-2025/09/21-21:17:53.793 78d4 Manual compaction at level-0 from '\x00)\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00*\x00\x00\x00' @ 0 : 0; will stop at '\x00)\x00\x00\x05' @ 1816 : 1
-2025/09/21-21:17:53.793 78d4 Compacting 1@0 + 1@1 files
-2025/09/21-21:17:53.795 78d4 Generated table #102@0: 397 keys, 9436 bytes
-2025/09/21-21:17:53.796 78d4 Compacted 1@0 + 1@1 files => 9436 bytes
-2025/09/21-21:17:53.796 78d4 compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/09/21-21:17:53.797 78d4 Delete type=2 #101
-2025/09/21-21:17:53.797 78d4 Manual compaction at level-0 from '\x00)\x00\x00\x05' @ 1816 : 1 .. '\x00*\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/09/21-22:00:02.756 3550 Reusing MANIFEST C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\IndexedDB\https_www.avito.ru_0.indexeddb.leveldb/MANIFEST-000001
+2025/09/21-22:00:02.757 3550 Recovering log #160
+2025/09/21-22:00:02.757 3550 Reusing old log C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\IndexedDB\https_www.avito.ru_0.indexeddb.leveldb/000160.log 
+2025/09/21-22:00:02.757 3550 Delete type=2 #159
+2025/09/21-22:00:02.775 7c40 Level-0 table #165: started
+2025/09/21-22:00:02.777 7c40 Level-0 table #165: 1465 bytes OK
+2025/09/21-22:00:02.778 7c40 Delete type=0 #160
+2025/09/21-22:00:02.778 3550 Manual compaction at level-0 from '\x00;\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00<\x00\x00\x00' @ 0 : 0; will stop at '\x00;\x00\x00\x05' @ 2644 : 1
+2025/09/21-22:00:02.778 3550 Compacting 1@0 + 1@1 files
+2025/09/21-22:00:02.780 3550 Generated table #166@0: 415 keys, 9859 bytes
+2025/09/21-22:00:02.780 3550 Compacted 1@0 + 1@1 files => 9859 bytes
+2025/09/21-22:00:02.780 3550 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/09/21-22:00:02.781 3550 Delete type=2 #165
+2025/09/21-22:00:02.781 3550 Manual compaction at level-0 from '\x00;\x00\x00\x05' @ 2644 : 1 .. '\x00<\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/09/21-22:00:07.912 7c40 Level-0 table #168: started
+2025/09/21-22:00:07.914 7c40 Level-0 table #168: 1470 bytes OK
+2025/09/21-22:00:07.915 7c40 Delete type=2 #162
+2025/09/21-22:00:07.915 7c40 Delete type=0 #164
+2025/09/21-22:00:07.916 554c Manual compaction at level-0 from '\x00<\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00=\x00\x00\x00' @ 0 : 0; will stop at '\x00<\x00\x00\x05' @ 2690 : 1
+2025/09/21-22:00:07.916 554c Compacting 1@0 + 1@1 files
+2025/09/21-22:00:07.918 554c Generated table #169@0: 416 keys, 9876 bytes
+2025/09/21-22:00:07.918 554c Compacted 1@0 + 1@1 files => 9876 bytes
+2025/09/21-22:00:07.919 554c compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/09/21-22:00:07.919 554c Delete type=2 #168
+2025/09/21-22:00:07.919 554c Manual compaction at level-0 from '\x00<\x00\x00\x05' @ 2690 : 1 .. '\x00=\x00\x00\x00' @ 0 : 0; will stop at (end)

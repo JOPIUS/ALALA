@@ -1,9 +1,11 @@
-2025/09/21-21:15:45.566 40b8 Reusing MANIFEST C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Local Storage\leveldb/MANIFEST-000001
-2025/09/21-21:15:45.572 40b8 Recovering log #58
-2025/09/21-21:15:45.573 40b8 Level-0 table #61: started
-2025/09/21-21:15:45.579 40b8 Level-0 table #61: 55550 bytes OK
-2025/09/21-21:15:45.581 40b8 Recovering log #60
-2025/09/21-21:15:45.582 40b8 Level-0 table #62: started
-2025/09/21-21:15:45.587 40b8 Level-0 table #62: 55555 bytes OK
-2025/09/21-21:15:45.593 40b8 Delete type=0 #58
-2025/09/21-21:15:45.593 40b8 Delete type=0 #60
+2025/09/21-21:52:36.060 6fd0 Reusing MANIFEST C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2025/09/21-21:52:36.070 6fd0 Recovering log #87
+2025/09/21-21:52:36.070 6fd0 Level-0 table #90: started
+2025/09/21-21:52:36.076 6fd0 Level-0 table #90: 55345 bytes OK
+2025/09/21-21:52:36.076 6fd0 Recovering log #89
+2025/09/21-21:52:36.077 6fd0 Level-0 table #91: started
+2025/09/21-21:52:36.083 6fd0 Level-0 table #91: 55128 bytes OK
+2025/09/21-21:52:36.087 6fd0 Delete type=0 #87
+2025/09/21-21:52:36.087 6fd0 Delete type=0 #89
+2025/09/21-21:53:22.870 2c78 Level-0 table #94: started
+2025/09/21-21:53:22.877 2c78 Level-0 table #94: 56881 bytes OK

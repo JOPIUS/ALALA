@@ -1,5 +1,24 @@
-2025/09/21-21:17:43.142 61c8 Reusing MANIFEST C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Local Storage\leveldb/MANIFEST-000001
-2025/09/21-21:17:43.152 61c8 Recovering log #63
-2025/09/21-21:17:43.155 61c8 Reusing old log C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Local Storage\leveldb/000063.log 
-2025/09/21-21:18:00.640 61c8 Level-0 table #66: started
-2025/09/21-21:18:00.646 61c8 Level-0 table #66: 55520 bytes OK
+2025/09/21-22:00:00.669 15e0 Reusing MANIFEST C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2025/09/21-22:00:00.676 15e0 Recovering log #92
+2025/09/21-22:00:00.677 15e0 Level-0 table #94: started
+2025/09/21-22:00:00.682 15e0 Level-0 table #94: 56881 bytes OK
+2025/09/21-22:00:00.683 15e0 Recovering log #93
+2025/09/21-22:00:00.684 15e0 Level-0 table #95: started
+2025/09/21-22:00:00.688 15e0 Level-0 table #95: 56517 bytes OK
+2025/09/21-22:00:00.692 15e0 Delete type=0 #92
+2025/09/21-22:00:00.692 15e0 Delete type=0 #93
+2025/09/21-22:00:00.693 60e4 Compacting 4@0 + 1@1 files
+2025/09/21-22:00:00.704 60e4 Generated table #97@0: 122 keys, 60164 bytes
+2025/09/21-22:00:00.705 60e4 Compacted 4@0 + 1@1 files => 60164 bytes
+2025/09/21-22:00:00.705 60e4 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/09/21-22:00:00.706 60e4 Delete type=2 #88
+2025/09/21-22:00:00.707 60e4 Delete type=2 #90
+2025/09/21-22:00:00.707 60e4 Delete type=2 #91
+2025/09/21-22:00:00.707 60e4 Delete type=2 #94
+2025/09/21-22:00:00.707 60e4 Delete type=2 #95
+2025/09/21-22:01:00.709 60e4 Level-0 table #99: started
+2025/09/21-22:01:00.720 60e4 Level-0 table #99: 55671 bytes OK
+2025/09/21-22:01:00.722 60e4 Delete type=0 #96
+2025/09/21-22:03:38.042 60e4 Level-0 table #101: started
+2025/09/21-22:03:38.051 60e4 Level-0 table #101: 55478 bytes OK
+2025/09/21-22:03:38.052 60e4 Delete type=0 #98
