@@ -1,0 +1,1072 @@
+# avito_paid_cvs_save_v6_6.py
+# -*- coding: utf-8 -*-
+"""
+Avito: Купленные резюме → XLSX.
+
+v6_6 = v6_2 + ЖЁСТКИЙ СТОП-ЛИСТ ИЗ C:\\ManekiNeko\\AVITO_API\\output
+  • Стоплист формируется ТОЛЬКО из каталога: C:\\ManekiNeko\\AVITO_API\\output
+  • Берём из всех *.xlsx любые листы, где удаётся найти колонки:
+       — ФИО (любой колонкой: «ФИО», «Ф.И.О», «Имя», «Фамилия», «Кандидат», «Соискатель», «name», …)
+       — Телефон ("Тел", "Номер", "Phone", …) — ОБЯЗАТЕЛЬНАЯ
+       — Полный комментарий ("Полный комментарий" / «Комментарий» / «Comment» и т. п.)
+    Телефон нормализуется: только цифры; 8XXXXXXXXXX→7XXXXXXXXXX; 9XXXXXXXXX→79XXXXXXXXX.
+  • Итоговый объединённый стоплист пишется в лист «Стоплист_телефонов» (колонки: Телефон, ФИО, Комментарий, Файл, Лист).
+  • Все номера из стоплиста исключаются из листов «paid_cvs» и «Для_звонков».
+
+Остальное из v6_2 сохранено:
+  — Жёсткая TZ-конверсия update_time_api (UTC→TZ→naive)
+  — Лист «Для_звонков» с сортировкой purchased_at_web DESC, updated_at_web DESC
+  — Поля desired_title_api и salary_expected_api
+
+CLI:
+  python avito_paid_cvs_save_v6_6.py --limit 100 --tz Europe/Moscow
+
+Зависимости:
+  pip install playwright pandas openpyxl requests tzdata
+  python -m playwright install chromium
+"""
+from __future__ import annotations
+
+from pathlib import Path
+from datetime import datetime, timedelta, timezone
+from playwright.sync_api import sync_playwright, Error as PwError
+import re, time, json, sys, os
+import pandas as pd
+
+# ===== TZ helper =====
+try:
+    from zoneinfo import ZoneInfo  # Python 3.9+
+except Exception:
+    try:
+        from backports.zoneinfo import ZoneInfo  # type: ignore
+    except Exception:
+        ZoneInfo = None  # type: ignore
+
+DEFAULT_TZ_NAME = "Europe/Moscow"
+
+def _get_tz(tz_name: str):
+    tz_name = (tz_name or DEFAULT_TZ_NAME).strip()
+    if ZoneInfo is not None:
+        try:
+            return ZoneInfo(tz_name)
+        except Exception:
+            pass
+    if tz_name in ("Europe/Moscow", "MSK", "RU-MOW"):
+        return timezone(timedelta(hours=3))
+    return timezone.utc
+
+# ===== Настройки веб-части =====
+HOME_URL   = "https://www.avito.ru/"
+TARGET_URL = "https://www.avito.ru/profile/paid-cvs"
+
+USER_DATA_DIR = Path("./avito_browser_profile").resolve()
+OUTPUT_DIR    = Path("./saved_pages").resolve(); OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+NAV_TIMEOUT            = 60_000
+MAX_TOTAL_SCROLL_SEC   = 420
+QUIET_MS               = 2000
+STABLE_GROWTH_ROUNDS   = 5
+MAX_WHEEL_STEPS        = 480
+WHEEL_DELAY_SEC        = 0.20
+WAIT_RESP_TIMEOUT_MS   = 6000
+NETWORK_IDLE_GRACE     = 2
+
+# ========== Авторизация/HTTP к Avito API ==========
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+API_BASE = "https://api.avito.ru"
+TIMEOUT  = 30
+
+APP_NAME = "Resume Sercher"
+CLIENT_ID     = "Dm4ruLMEr9MFsV72dN95"
+CLIENT_SECRET = "f73lNoAJLzuqwoGtVaMnByhQfSlwcyIN_m7wyOeT"
+REDIRECT_URL  = "https://hireworkers.ru/"
+
+SESSION = requests.Session()
+retry_cfg = Retry(
+    total=5, connect=5, read=5,
+    backoff_factor=0.5,
+    status_forcelist=[429, 500, 502, 503, 504],
+    allowed_methods=frozenset(["GET", "POST"]),
+    raise_on_status=False,
+)
+SESSION.mount("https://", HTTPAdapter(max_retries=retry_cfg, pool_connections=10, pool_maxsize=10))
+SESSION.headers.update({"User-Agent": f"{APP_NAME} / avito_paid_cvs_save_v6_6", "Accept": "application/json"})
+
+class Token:
+    def __init__(self) -> None:
+        self._token: str | None = None
+        self._exp: float = 0.0
+        self.force_refresh_on_start = True
+    def _refresh(self) -> None:
+        r = SESSION.post(
+            f"{API_BASE}/token",
+            data={"grant_type": "client_credentials", "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET},
+            timeout=TIMEOUT,
+        )
+        r.raise_for_status()
+        js = r.json()
+        self._token = js["access_token"]
+        self._exp = time.time() + int(js.get("expires_in", 3600)) - 20
+        print("🔑 access_token обновлён")
+    def get(self) -> str:
+        if self.force_refresh_on_start or self._token is None or time.time() >= self._exp:
+            self._refresh()
+            self.force_refresh_on_start = False
+        return self._token  # type: ignore[return-value]
+_tok = Token()
+
+def _respect_rate_limit(resp: requests.Response) -> None:
+    try:
+        remain = int(resp.headers.get("X-RateLimit-Remaining", "2"))
+        if remain <= 1:
+            time.sleep(1.0)
+    except Exception:
+        pass
+
+def avito_get_json(path: str, *, params: dict | None = None, timeout: int | None = None) -> dict:
+    to = timeout or TIMEOUT
+    for attempt in (1, 2):
+        try:
+            resp = SESSION.get(API_BASE + path, headers={"Authorization": "Bearer " + _tok.get()}, params=params, timeout=to)
+            if resp.status_code == 200:
+                _respect_rate_limit(resp)
+                return resp.json()
+            if resp.status_code in (401, 403) and attempt == 1:
+                print(f"⚠️  {resp.status_code} на {path}. Обновляю токен…")
+                _tok.force_refresh_on_start = True
+                _tok.get()
+                continue
+            print(f"⚠️  GET {path} → HTTP {resp.status_code}: {resp.text[:200]}...")
+            return {}
+        except requests.RequestException as e:
+            if attempt == 1:
+                print(f"⚠️  Ошибка сети на {path}: {e}. Рефреш токена…")
+                _tok.force_refresh_on_start = True
+                _tok.get()
+                continue
+            print(f"⛔  Ошибка сети на {path} (повтор не помог): {e}")
+            return {}
+    return {}
+
+def _ensure_my_user_id() -> int:
+    """
+    Возвращает ваш user_id из /core/v1/accounts/self.
+    Токен берём через уже настроенный _tok/SESSION.
+    """
+    try:
+        resp = SESSION.get(
+            API_BASE + "/core/v1/accounts/self",
+            headers={"Authorization": "Bearer " + _tok.get()},
+            timeout=TIMEOUT,
+        )
+        if resp.status_code != 200:
+            raise RuntimeError(f"/accounts/self HTTP {resp.status_code}: {resp.text[:200]}")
+        data = resp.json() or {}
+        uid = data.get("id") or data.get("user_id")
+        if not uid:
+            raise RuntimeError(f"/accounts/self: поле id/user_id не найдено: {data}")
+        return int(uid)
+    except Exception as e:
+        print(f"⛔  _ensure_my_user_id() error: {e}")
+        return 0
+
+def _get_candidate_avito_id_from_chat(chat_id: str, page_limit: int = 100, max_pages: int = 8) -> int | None:
+    """
+    Пытается определить avito_id кандидата по chat_id.
+    1) Читаем сообщения чата и берём автора входящих (direction=='in'), отличного от моего user_id.
+    2) Фолбэк: берём участников чата (users/participants) или автора последнего сообщения.
+    Возвращает int или None.
+    """
+    if not chat_id:
+        return None
+
+    my_uid = _ensure_my_user_id()
+    if not my_uid:
+        return None
+
+    # --- 1) По сообщениям (V3). Безопасно: limit <= 100
+    try:
+        page_limit = min(max(1, int(page_limit)), 100)
+    except Exception:
+        page_limit = 100
+
+    offset = 0
+    for _ in range(max_pages):
+        try:
+            url = f"{API_BASE}/messenger/v3/accounts/{my_uid}/chats/{chat_id}/messages/"
+            params = {"limit": page_limit, "offset": offset}
+            r = SESSION.get(url, headers={"Authorization": "Bearer " + _tok.get()}, params=params, timeout=TIMEOUT)
+            if r.status_code != 200:
+                break
+            payload = r.json() or {}
+            # Возможные варианты формата ответа
+            messages = []
+            if isinstance(payload.get("messages"), list):
+                messages = payload["messages"]
+            elif isinstance(payload.get("messages"), dict) and isinstance(payload["messages"].get("messages"), list):
+                messages = payload["messages"]["messages"]
+            elif isinstance(payload.get("result"), list):
+                messages = payload["result"]
+
+            if not messages:
+                break
+
+            # 1а) входящие сообщения — автор и есть кандидат
+            for m in messages:
+                if str(m.get("direction")).lower() == "in":
+                    aid = m.get("author_id") or ((m.get("author") or {}).get("id"))
+                    try:
+                        aid = int(aid)
+                    except Exception:
+                        aid = None
+                    if aid and aid not in (0, my_uid):
+                        return aid
+
+            # 1б) фолбэк на странице — любой автор ≠ мы и ≠ 0
+            for m in messages:
+                aid = m.get("author_id") or ((m.get("author") or {}).get("id"))
+                try:
+                    aid = int(aid)
+                except Exception:
+                    aid = None
+                if aid and aid not in (0, my_uid):
+                    return aid
+
+            got = len(messages)
+            if got < page_limit:
+                break
+            offset += got
+        except Exception as e:
+            print(f"⚠️  messages fetch error: {e}")
+            break
+
+    # --- 2) Общий фолбэк — информация по чату
+    try:
+        for tail in ("/", ""):
+            url = f"{API_BASE}/messenger/v3/accounts/{my_uid}/chats/{chat_id}{tail}"
+            r = SESSION.get(url, headers={"Authorization": "Bearer " + _tok.get()}, timeout=TIMEOUT)
+            if r.status_code != 200:
+                continue
+            data = r.json() or {}
+            users = data.get("users") or data.get("participants") or []
+            for u in users:
+                aid = u.get("id") or u.get("user_id")
+                try:
+                    aid = int(aid)
+                except Exception:
+                    aid = None
+                if aid and aid not in (0, my_uid):
+                    return aid
+            lm = data.get("last_message") or {}
+            aid = lm.get("author_id") or ((lm.get("author") or {}).get("id"))
+            try:
+                aid = int(aid)
+            except Exception:
+                aid = None
+            if aid and aid not in (0, my_uid):
+                return aid
+    except Exception as e:
+        print(f"⚠️  chat info fallback error: {e}")
+
+    return None
+
+
+
+# ——— Avito Job API wrappers
+
+def get_resume_open_json(resume_id: str) -> dict:
+    """GET /job/v2/resumes/{id} — открытые данные резюме (Resume 2.0)."""
+    return avito_get_json(f"/job/v2/resumes/{resume_id}") or {}
+
+def get_resume_paid_contacts_json(resume_id: str) -> dict:
+    """GET /job/v1/resumes/{id}/contacts — купленные контакты (ResumeContacts)."""
+    js = avito_get_json(f"/job/v1/resumes/{resume_id}/contacts", timeout=TIMEOUT + 10)
+    if js:
+        return js
+    return avito_get_json(f"/job/v1/resumes/{resume_id}/contacts/", timeout=TIMEOUT + 10) or {}
+
+# ========== Скролл/экстракт ==========
+ROBUST_SCROLL_LIMIT_JS = rf"""
+  async (need) => {{
+    const deadline = Date.now() + {MAX_TOTAL_SCROLL_SEC} * 1000;
+    const quietMs  = {QUIET_MS};
+    document.documentElement.style.scrollBehavior = 'auto';
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const norm = s => (s||'').replace(/\s+/g,' ').trim();
+    const listSelector = '[data-marker="cv-snippet"]';
+
+    let lastMutation = Date.now();
+    const mo = new MutationObserver(() => {{ lastMutation = Date.now(); }});
+    mo.observe(document.body, {{childList:true, subtree:true}});
+
+    async function clickMore() {{
+      const reMore = /(показат[ьъ]\s*ещ[её]|показать больше|ещё|загрузить ещё)/i;
+      const btns = Array.from(document.querySelectorAll('button,a')).filter(b => reMore.test(norm(b.textContent)));
+      for (const b of btns) {{ if (!b.disabled && !b.getAttribute('aria-disabled')) {{ b.click(); await sleep(350); }} }}
+    }}
+
+    let lastCount = 0, stableRounds = 0;
+    const cards = () => Array.from(document.querySelectorAll(listSelector));
+
+    while (Date.now() < deadline) {{
+      window.scrollTo(0, document.body.scrollHeight);
+      await sleep(450);
+      await clickMore();
+
+      window.scrollBy(0, -200); await sleep(150);
+      window.scrollTo(0, document.body.scrollHeight); await sleep(450);
+
+      const curCount = cards().length;
+      const quiet = (Date.now() - lastMutation) > quietMs;
+      if (curCount <= lastCount && quiet) stableRounds++; else {{ stableRounds=0; lastCount=curCount; }}
+      if (need && curCount >= need) break;
+      if (stableRounds >= {STABLE_GROWTH_ROUNDS}) break;
+    }}
+
+    let before = cards().length;
+    for (let i = 0; i < cards().length && Date.now() < deadline; i++) {{
+      try {{ cards()[i].scrollIntoView({{block:'center'}}); }} catch(e) {{}}
+      await sleep(140);
+      await clickMore();
+      window.scrollBy(0, 120); await sleep(80); window.scrollBy(0, -120);
+      await sleep(120);
+      const cur = cards().length;
+      if (need && cur >= need) break;
+      if (cur > before) {{ before = cur; i = Math.max(0, i-3); }}
+    }}
+
+    for (let k=0;k<10;k++) {{
+      window.scrollTo(0, document.body.scrollHeight); await sleep(400); await clickMore();
+      if (need && cards().length >= need) break;
+    }}
+
+    mo.disconnect();
+    const total = cards().length;
+    return need ? Math.min(total, need) : total;
+  }}
+"""
+
+COUNT_CARDS_JS = '() => document.querySelectorAll(\'[data-marker="cv-snippet"]\').length'
+
+EXTRACT_JS = r"""
+  () => {
+    const norm = s => (s||'').replace(/\s+/g,' ').trim();
+    const q = (root, sel) => root.querySelector(sel);
+
+    const getDateText = (card, preferSel, labelRx) => {
+      for (const sel of preferSel) {
+        const el = sel ? card.querySelector(sel) : null;
+        const txt = norm(el?.textContent);
+        if (txt) return txt;
+      }
+      const full = norm(card.textContent || '');
+      const m = full.match(labelRx);
+      return m ? norm(m[0]) : '';
+    };
+
+    const out = [], seen = new Set();
+    const cards = Array.from(document.querySelectorAll('[data-marker="cv-snippet"]'));
+
+    for (const card of cards) {
+      const linkEl = card.querySelector('a[href]');
+      const link = linkEl ? new URL(linkEl.getAttribute('href'), location.origin).href : '';
+      const rid  = (link.match(/\/(\d+)(?:\?|$)/)||[])[1] || '';
+
+      const purchasedRaw = getDateText(
+        card,
+        ['[data-marker="cv-snippet/date/item-bought"]', '[data-marker*="date"]'],
+        /(Куплено\s+(?:сегодня|вчера|\d{1,2}\s+[А-Яа-яЁё\.]+(?:\s+\d{4})?\s+в\s+\d{1,2}:\d{2}))/i
+      );
+      const updatedRaw = getDateText(
+        card,
+        ['[data-marker="cv-snippet/date/item-changed"]', '[data-marker*="date"]'],
+        /((?:Обновлено|Удалено)\s+(?:сегодня|вчера|\d{1,2}\s+[А-Яа-яЁё\.]+(?:\s+\d{4})?\s+в\s+\d{1,2}:\d{2}))/i
+      );
+
+      const rec = {
+        candidate_name_web: norm(q(card, '[data-marker="cv-snippet/title"]')?.textContent),
+        city_web:           norm(q(card, '[data-marker="cv-snippet/address"]')?.textContent),
+        link: link, resume_id: rid,
+        purchased_at_web: purchasedRaw,
+        updated_at_web:   updatedRaw,
+        photo_url_web:     q(card, 'img[src]')?.src || ''
+      };
+
+      const key = rec.resume_id || rec.link || rec.candidate_name_web;
+      if (key && !seen.has(key)) { seen.add(key); out.push(rec); }
+    }
+    return out;
+  }
+"""
+
+# ========== Русские даты ==========
+RU_MONTHS = {
+    "января":1,"февраля":2,"марта":3,"апреля":4,"мая":5,"июня":6,
+    "июля":7,"августа":8,"сентября":9,"октября":10,"ноября":11,"декабря":12,
+    "янв":1,"фев":2,"мар":3,"апр":4,"май":5,"мая":5,"июн":6,"июл":7,
+    "авг":8,"сен":9,"сент":9,"окт":10,"ноя":11,"дек":12,
+    "янв.":1,"фев.":2,"мар.":3,"апр.":4,"июн.":6,"июл.":7,"авг.":8,"сен.":9,"сент.":9,"окт.":10,"ноя.":11,"дек.":12,
+}
+
+def _normalize_ru_dt_string(s: str) -> str:
+    s = (s or "").lower().replace("\u00a0"," ").replace("ё","е")
+    s = re.sub(r"[·•]\s*$","", s).strip()
+    s = re.sub(r"^(куплен[оа]?|обновлен[оа]?|удален[оа]?|создан[оа]?|опубликован[оа]?|размещен[оа]?)\s+","", s)
+    s = re.sub(r"\s+\d{4}\s*(?:г\.?|года)$","", s)
+    return s.strip()
+
+def parse_ru_dt(s: str, now: datetime | None = None) -> pd.Timestamp:
+    if not s:
+        return pd.NaT
+    s_norm = _normalize_ru_dt_string(s)
+    now = now or datetime.now()
+
+    m = re.search(r"(сегодня|вчера)\s*в\s*(\d{1,2})\s*:\s*(\d{2})", s_norm)
+    if m:
+        tag, hh, mm = m.groups()
+        dt = now.replace(hour=int(hh), minute=int(mm), second=0, microsecond=0)
+        if tag == "вчера":
+            dt -= timedelta(days=1)
+        return pd.Timestamp(dt.replace(tzinfo=None))
+
+    text = s_norm.lower().replace("\u00a0", " ")
+    m = re.search(r"(\d{1,2})\s+([а-я\.]+)(?:\s+(\d{4}))?\s+в\s+(\d{1,2}):(\d{2})", text)
+    if m:
+        d, mon_word, year_str, hh, mm = m.groups()
+        mon = RU_MONTHS.get(mon_word, RU_MONTHS.get(mon_word.rstrip(".")))
+        if not mon:
+            return pd.NaT
+        year = int(year_str) if year_str else (now.year - (1 if mon > now.month else 0))
+        try:
+            base = datetime(year, int(mon), int(d), int(hh), int(mm))
+            return pd.Timestamp(base)
+        except Exception:
+            return pd.NaT
+
+    return pd.NaT
+
+# ========== STOPLIST (жёстко: C:\\ManekiNeko\\AVITO_API\\output) ==========
+STOPLIST_DIR = Path(r"C:\\ManekiNeko\\AVITO_API\\output").resolve()
+
+_FIO_PATTERNS = [
+    r"\bф\.?и\.?о\.?\b", r"\bфио\b", r"\bимя\b", r"\bфамил", r"кандидат", r"соискател", r"applicant", r"name", r"full\s*name"
+]
+_PHONE_PATTERNS = [r"тел", r"phone", r"номер", r"mobile", r"mob"]
+_COMMENT_PATTERNS = [r"полный\s*коммент", r"полный\s*комментар", r"comment", r"коммент", r"замечани", r"примечан"]
+
+_DEF_COLS = {"phone": "Телефон", "fio": "ФИО", "comment": "Комментарий"}
+
+def _clean_phone_series(series: pd.Series) -> pd.Series:
+    s = series.astype(str).str.replace(r"\D", "", regex=True)
+    s = s.str.replace(r"^8(?=\d{10}$)", "7", regex=True)
+    mask10 = s.str.match(r"^\d{10}$")
+    s.loc[mask10] = "7" + s[mask10]
+    return s
+
+def _find_col(cols: list[str], patterns: list[str]) -> str | None:
+    low = [c.lower().strip() for c in cols]
+    for p in patterns:
+        rx = re.compile(p, re.IGNORECASE)
+        for i, name in enumerate(low):
+            if rx.search(name):
+                return cols[i]
+    return None
+
+
+def build_stoplist_from_output() -> tuple[pd.DataFrame, dict]:
+    """
+    Возвращает (stoplist_df, file_stats)
+    где file_stats = {"filename": count_records, ...}
+    """
+    rows: list[pd.DataFrame] = []
+    file_stats = {}
+    if not STOPLIST_DIR.exists():
+        return pd.DataFrame(columns=[_DEF_COLS["phone"], _DEF_COLS["fio"], _DEF_COLS["comment"], "Файл", "Лист"]), {}
+
+    SHEET_NAME = "Стоплист_телефонов"
+    EXPECTED_PHONE = "телефон"
+    EXPECTED_FIO = "фио"
+    EXPECTED_COMMENT_FULL = "полный комментарий"
+
+    for fp in STOPLIST_DIR.glob("*.xlsx"):
+        if fp.name.startswith("~$"):
+            continue
+        try:
+            xl = pd.ExcelFile(fp, engine="openpyxl")
+            if SHEET_NAME not in xl.sheet_names:
+                continue
+
+            df = xl.parse(SHEET_NAME)
+            if df.empty:
+                continue
+
+            # Нормализуем названия колонок для поиска ожидаемых заголовков
+            low2orig = {str(c).strip(): c for c in df.columns}
+            lowmap = {k.lower(): v for k, v in low2orig.items()}
+
+            phone_col   = lowmap.get(EXPECTED_PHONE)
+            fio_col     = lowmap.get(EXPECTED_FIO)
+            comment_col = lowmap.get(EXPECTED_COMMENT_FULL)
+
+            # Без телефона — это не стоплист
+            if not phone_col:
+                continue
+
+            sub = pd.DataFrame()
+            sub[_DEF_COLS["phone"]] = _clean_phone_series(df[phone_col])
+            sub[_DEF_COLS["fio"]] = df[fio_col] if fio_col else ""
+            # Внутри системы «Комментарий» — это то, что на листе называется «Полный комментарий»
+            sub[_DEF_COLS["comment"]] = df[comment_col] if comment_col else ""
+            sub["Файл"], sub["Лист"] = fp.name, SHEET_NAME
+
+            # отбросим пустые телефоны
+            sub = sub[sub[_DEF_COLS["phone"]].astype(str).str.len() > 0]
+            if not sub.empty:
+                file_stats[fp.name] = len(sub)
+                rows.append(sub[[_DEF_COLS["phone"], _DEF_COLS["fio"], _DEF_COLS["comment"], "Файл", "Лист"]])
+        except Exception:
+            continue
+
+    if not rows:
+        return pd.DataFrame(columns=[_DEF_COLS["phone"], _DEF_COLS["fio"], _DEF_COLS["comment"], "Файл", "Лист"]), {}
+
+    all_df = pd.concat(rows, ignore_index=True)
+    all_df[_DEF_COLS["phone"]] = _clean_phone_series(all_df[_DEF_COLS["phone"]])
+
+    # Дедуп по телефону: оставим запись с наибольшей длиной комментария
+    try:
+        all_df["_clen"] = all_df[_DEF_COLS["comment"]].astype(str).map(len)
+        all_df = all_df.sort_values([_DEF_COLS["phone"], "_clen"], ascending=[True, False])
+        all_df = all_df.drop_duplicates(subset=[_DEF_COLS["phone"]], keep="first")
+        all_df = all_df.drop(columns=["_clen"])
+    except Exception:
+        all_df = all_df.drop_duplicates(subset=[_DEF_COLS["phone"]], keep="first")
+
+    return all_df.reset_index(drop=True), file_stats
+
+# ========== Вспомогательные веб-функции ==========
+
+def save_as_mhtml(page, out_path: Path):
+    s = page.context.new_cdp_session(page)
+    s.send("Page.enable")
+    data = s.send("Page.captureSnapshot", {"format": "mhtml"})["data"]
+    out_path.write_text(data, encoding="utf-8")
+    return out_path
+
+def goto_resilient(page, url, expect_pattern, attempts=3):
+    for _ in range(attempts):
+        try: page.goto(url, wait_until="commit", timeout=NAV_TIMEOUT)
+        except PwError: pass
+        try:
+            page.wait_for_url(expect_pattern, wait_until="domcontentloaded", timeout=30_000)
+            return True
+        except PwError:
+            try: page.goto(HOME_URL, wait_until="domcontentloaded", timeout=30_000)
+            except PwError: pass
+    return False
+
+def robust_scroll(page, need_count: int | None = None) -> int:
+    try:
+        count1 = page.evaluate(ROBUST_SCROLL_LIMIT_JS, need_count)
+    except Exception:
+        count1 = 0
+
+    last_h, still = 0, 0
+    for _ in range(MAX_WHEEL_STEPS):
+        try: page.mouse.wheel(0, 1600)
+        except Exception: pass
+        time.sleep(WHEEL_DELAY_SEC)
+        try: h = page.evaluate("Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)")
+        except Exception: h = last_h
+        if h <= last_h:
+            still += 1
+            if still >= 6: break
+        else:
+            still = 0; last_h = h
+        if need_count is not None:
+            try:
+                cur = int(page.evaluate(COUNT_CARDS_JS))
+                if cur >= int(need_count):
+                    break
+            except Exception:
+                pass
+
+    quiet = 0
+    while quiet < NETWORK_IDLE_GRACE:
+        try:
+            page.wait_for_response(
+                lambda r: ("avito.ru" in r.url) and r.status == 200 and
+                          (getattr(r.request, "resource_type", None) in ("xhr","fetch")),
+                timeout=WAIT_RESP_TIMEOUT_MS
+            )
+            quiet = 0
+        except Exception:
+            quiet += 1
+
+    try:
+        count2 = int(page.evaluate(COUNT_CARDS_JS))
+    except Exception:
+        count2 = count1
+    return min(count2, need_count) if need_count else max(count1, count2)
+
+# ========== ENRICH (API): ФИО/контакты/is_purchased/update_time ==========
+
+def _salary_to_text(sal):
+    if sal is None:
+        return ""
+    if isinstance(sal, (int, float)):
+        return str(int(sal))
+    if isinstance(sal, dict):
+        lo = sal.get("from")
+        hi = sal.get("to")
+        cur = sal.get("currency", "")
+        rng = "" if (lo is None and hi is None) else f"{lo or ''}–{hi or ''}"
+        return (rng + (f" {cur}" if cur else "")).strip()
+    return str(sal)
+
+
+def enrich_one(resume_id: str, tz_target) -> dict:
+    open_js = get_resume_open_json(resume_id)
+    paid_js = get_resume_paid_contacts_json(resume_id)
+
+    phone = email = chat_id = ""
+    fio = ""
+    first_name = last_name = patronymic = ""
+    avito_id_val: str = ""
+
+    if paid_js:
+        fio = (paid_js.get("name") or "")[:256].strip()
+        fn = paid_js.get("full_name") or {}
+        first_name  = str(fn.get("first_name") or "")
+        last_name   = str(fn.get("last_name") or "")
+        patronymic  = str(fn.get("patronymic") or "")
+        if not fio:
+            fio = " ".join(x for x in (last_name, first_name, patronymic) if x).strip()
+        for c in (paid_js.get("contacts") or []):
+            t = str(c.get("type") or "").lower()
+            v = str(c.get("value") or "")
+            if   t == "phone":   phone = v
+            elif t in ("e-mail", "email"):  email = v
+            elif t == "chat_id": chat_id = v
+
+    # <-- НОВОЕ: если есть chat_id, получаем по нему avito_id кандидата
+    if chat_id:
+        try:
+            cand_id = _get_candidate_avito_id_from_chat(chat_id, page_limit=100, max_pages=8)
+            if cand_id:
+                avito_id_val = str(int(cand_id))
+        except Exception as e:
+            print(f"⚠️  resolve avito_id by chat_id={chat_id} failed: {e}")
+
+    is_purchased_api = bool(open_js.get("is_purchased")) if isinstance(open_js, dict) else False
+    update_time_api_raw = str(open_js.get("update_time") or "") if isinstance(open_js, dict) else ""
+
+    try:
+        ut = pd.to_datetime(update_time_api_raw, errors="coerce", utc=True)
+        if pd.isna(ut):
+            update_time_api = pd.NaT
+        else:
+            local = ut.tz_convert(tz_target)
+            update_time_api = local.tz_localize(None)
+    except Exception:
+        update_time_api = pd.NaT
+
+    desired_title_api   = str(open_js.get("title") or "")
+    salary_expected_api = _salary_to_text(open_js.get("salary"))
+
+    return {
+        "fio_api": fio,
+        "first_name_api": first_name,
+        "last_name_api": last_name,
+        "patronymic_api": patronymic,
+        "phone_api": phone,
+        "email_api": email,
+        "chat_id_api": chat_id,      # как и раньше
+        "avito_id": avito_id_val,    # <-- НОВОЕ поле
+        "is_purchased_api": is_purchased_api,
+        "update_time_api": update_time_api,
+        "updated_at_api": update_time_api,  # копия для отображения рядом с updated_at_web
+        "update_time_api_raw": update_time_api_raw,
+        "desired_title_api": desired_title_api,
+        "salary_expected_api": salary_expected_api,
+        "json_open": json.dumps(open_js, ensure_ascii=False),
+        "json_paid": json.dumps(paid_js, ensure_ascii=False),
+    }
+
+
+# ========== Ввод лимита/TZ ==========
+
+def _parse_limit_arg(argv: list[str]) -> int | None:
+    try:
+        if "--limit" in argv:
+            i = argv.index("--limit")
+            return max(0, int(argv[i+1]))
+        if "-n" in argv:
+            i = argv.index("-n")
+            return max(0, int(argv[i+1]))
+    except Exception:
+        pass
+    return None
+
+def _parse_tz_arg(argv: list[str]) -> str | None:
+    try:
+        if "--tz" in argv:
+            i = argv.index("--tz")
+            return argv[i+1]
+        if "-t" in argv:
+            i = argv.index("-t")
+            return argv[i+1]
+    except Exception:
+        pass
+    return None
+
+
+def ask_limit_from_user() -> int | None:
+    s = input("Сколько резюме собрать? Введите число или 'all' (по умолчанию: all): ").strip().lower()
+    if not s or s in ("all", "все"):
+        return None
+    try:
+        n = int(s)
+        return n if n > 0 else None
+    except Exception:
+        print("Не понял ввод. Будет собрано 'все'.")
+        return None
+
+# ========== MAIN ==========
+def main():
+    from openpyxl.utils import get_column_letter
+
+    tz_name = _parse_tz_arg(sys.argv) or os.getenv("AVITO_TZ") or DEFAULT_TZ_NAME
+    tz_target = _get_tz(tz_name)
+
+    limit = _parse_limit_arg(sys.argv)
+    if limit is None:
+        limit = ask_limit_from_user()
+
+    USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    with sync_playwright() as p:
+        context = p.chromium.launch_persistent_context(
+            user_data_dir=str(USER_DATA_DIR),
+            headless=False,
+            viewport=None,
+            args=["--disable-blink-features=AutomationControlled", "--no-sandbox"],
+        )
+        context.set_default_timeout(NAV_TIMEOUT)
+        context.set_default_navigation_timeout(NAV_TIMEOUT)
+        page = context.new_page()
+
+        try:
+            page.goto(HOME_URL, wait_until="domcontentloaded")
+        except PwError:
+            pass
+
+        input(f"\nОткрылся браузер. Войдите в Avito и нажмите Enter здесь...\n(Текущий TZ: {tz_name})\nСтоплист из: {STOPLIST_DIR}\n")
+
+        goto_resilient(page, TARGET_URL, "**/profile/paid-cvs*")
+        total_cards_est = robust_scroll(page, need_count=limit)
+
+        records = page.evaluate(EXTRACT_JS) or []
+        if limit is not None:
+            records = records[:limit]
+
+        # дедуп
+        uniq, seen = [], set()
+        for r in records:
+            key = r.get('resume_id') or r.get('link') or r.get('candidate_name_web')
+            if key and key not in seen:
+                seen.add(key)
+                uniq.append(r)
+                if limit is not None and len(uniq) >= limit:
+                    break
+
+        # офлайн-снимок (MHTML во временную папку, удалим позже)
+        ts = datetime.now(tz_target).strftime("%Y%m%d-%H%M%S")
+        mhtml_path = OUTPUT_DIR / f"avito_paid_cvs_{ts}.mhtml"
+        save_as_mhtml(page, mhtml_path)
+
+        # ENRICH через Avito API → tz_target
+        api_cache: dict[str, dict] = {}
+        for rec in uniq:
+            rid = rec.get("resume_id") or ""
+            if not rid:
+                continue
+            try:
+                api_cache[rid] = enrich_one(rid, tz_target)
+                time.sleep(0.2)
+            except Exception as e:
+                print(f"⚠️  API enrich failed for {rid}: {e}")
+
+        # к датафрейму
+        df = pd.DataFrame.from_records(uniq)
+
+        # локальный now для web-дат
+        now_local_naive = datetime.now(tz_target).replace(tzinfo=None)
+
+        # конвертация дат из веба → *_web (naive, локальное время TZ)
+        for col in ("purchased_at_web", "updated_at_web"):
+            if col in df.columns:
+                df[col] = df[col].apply(lambda s: parse_ru_dt(s, now=now_local_naive))
+
+        # добавим API-поля (берём из api_cache)
+        def _get(rid, key):
+            return (api_cache.get(str(rid)) or {}).get(key, "")
+
+        api_columns = [
+            "fio_api",            # нужен для excluded_df/диагностики, не выводим в paid_cvs
+            "phone_api", "email_api", "chat_id_api", "avito_id",
+            "update_time_api",    # нужен для api_difference расчёта
+            "updated_at_api",     # дата обновления из API для сравнения с web
+            "desired_title_api",
+            "json_open", "json_paid",
+        ]
+        for c in api_columns:
+            df[c] = df["resume_id"].map(lambda x: _get(x, c))
+
+        # ───── СТОП-ЛИСТ ─────
+        stop_df, stoplist_file_stats = build_stoplist_from_output()
+        stop_count = len(stop_df)
+        excluded_df = pd.DataFrame(columns=[
+            "purchased_at_web", "resume_id", "link", "fio_api", "phone_api", "city_web",
+            "Комментарий_стоплиста", "ФИО_стоплиста", "Источник", "respond_status"
+        ])
+
+        if stop_count > 0 and "phone_api" in df.columns:
+            df["_phone_clean"] = _clean_phone_series(df["phone_api"]).fillna("")
+            stop_df["_phone_clean"] = _clean_phone_series(stop_df[_DEF_COLS["phone"]]).fillna("")
+
+            merged = df.merge(
+                stop_df[["_phone_clean", _DEF_COLS["fio"], _DEF_COLS["comment"], "Файл", "Лист"]],
+                on="_phone_clean", how="left"
+            )
+
+            mask_ex = merged[_DEF_COLS["comment"]].notna() | merged[_DEF_COLS["fio"]].notna()
+
+            if mask_ex.any():
+                merged["respond_status"] = merged.apply(
+                    lambda r: "NO_ANSWER" if ((not r.get("avito_id")) and r.get("chat_id_api")) else "",
+                    axis=1
+                )
+                excluded_df = merged.loc[mask_ex, [
+                    "purchased_at_web", "resume_id", "link", "fio_api", "phone_api", "city_web",
+                    _DEF_COLS["comment"], _DEF_COLS["fio"], "Файл", "Лист", "respond_status"
+                ]].rename(columns={
+                    _DEF_COLS["comment"]: "Комментарий_стоплиста",
+                    _DEF_COLS["fio"]: "ФИО_стоплиста",
+                })
+
+            df = merged.loc[~mask_ex, df.columns].copy()
+            df = df.drop(columns=["_phone_clean"], errors="ignore")
+        else:
+            df = df.copy()
+
+        # Линк из API (fallback — web)
+        def _build_precise_link(row) -> str:
+            try:
+                js = json.loads(row.get("json_open") or "{}")
+                url_val = js.get("url") or js.get("uri") or (js.get("links") or {}).get("self") or js.get("link") or ""
+                if url_val:
+                    u = str(url_val)
+                    return u if u.startswith("http") else ("https://www.avito.ru" + u)
+            except Exception:
+                pass
+            w = str(row.get("link") or "")
+            if w:
+                return w if w.startswith("http") else ("https://www.avito.ru" + w)
+            return ""
+
+        df["link"] = df.apply(_build_precise_link, axis=1)
+
+        # НОВОЕ: «Ссылка на чат» из chat_id_api
+        df["Ссылка на чат"] = df["chat_id_api"].apply(
+            lambda x: f"https://www.avito.ru/profile/messenger/channel/{str(x).strip()}"
+            if isinstance(x, str) and str(x).strip() else (
+                f"https://www.avito.ru/profile/messenger/channel/{x}" if (x is not None and str(x).strip()) else ""
+            )
+        )
+
+        # api_difference: дни (updated_at_web - update_time_api)
+        def _days_diff(a, b):
+            try:
+                if pd.isna(a) or pd.isna(b):
+                    return pd.NA
+                return int((pd.Timestamp(a) - pd.Timestamp(b)).days)
+            except Exception:
+                return pd.NA
+
+        df["api_difference"] = df.apply(lambda r: _days_diff(r.get("updated_at_web"), r.get("update_time_api")), axis=1)
+
+        # respond_status
+        df["respond_status"] = df.apply(
+            lambda r: "NO_ANSWER" if ((not r.get("avito_id")) and r.get("chat_id_api")) else "",
+            axis=1
+        )
+
+        # закрытые (json_paid пусто) → отдельный лист
+        def _is_json_paid_empty(v) -> bool:
+            if pd.isna(v):
+                return True
+            s = str(v).strip()
+            if not s:
+                return True
+            try:
+                js = json.loads(s)
+                if js in ({}, [], None):
+                    return True
+            except Exception:
+                if s.lower() in ("{}", "[]", "null"):
+                    return True
+            return False
+
+        if "json_paid" in df.columns:
+            closed_mask = df["json_paid"].apply(_is_json_paid_empty)
+        else:
+            closed_mask = pd.Series(False, index=df.index)
+
+        closed_df = df.loc[closed_mask].copy()
+        if not closed_df.empty:
+            closed_df["respond_status"] = closed_df.apply(
+                lambda r: "NO_ANSWER" if ((not r.get("avito_id")) and r.get("chat_id_api")) else "",
+                axis=1
+            )
+
+        # из рабочих df исключаем закрытые
+        df = df.loc[~closed_mask].copy()
+
+        # NO_ANSWER лист (не удаляем из df)
+        no_answer_mask = df.apply(lambda r: (not r.get("avito_id")) and bool(r.get("chat_id_api")), axis=1)
+        no_answer_df = df.loc[no_answer_mask].copy()
+        if not no_answer_df.empty:
+            no_answer_df["respond_status"] = "NO_ANSWER"
+
+        # сортировка (новые → старые, max разница → min)
+        def _sort_df_for_output(dframe: pd.DataFrame) -> pd.DataFrame:
+            sort_by = []
+            if "updated_at_web" in dframe.columns:
+                sort_by.append("updated_at_web")
+            if "api_difference" in dframe.columns:
+                sort_by.append("api_difference")
+            if sort_by:
+                ascending_flags = [False] * len(sort_by)
+                try:
+                    return dframe.sort_values(by=sort_by, ascending=ascending_flags, na_position="last")
+                except Exception:
+                    return dframe
+            return dframe
+
+        # порядок колонок (purchased_at_web — ПЕРВАЯ)
+        desired_order = [
+            "purchased_at_web",
+            "updated_at_web", "updated_at_api", "candidate_name_web", "phone_api", "email_api",
+            "desired_title_api", "city_web", "avito_id", "respond_status",
+            "json_open", "json_paid", "link", "Ссылка на чат", "chat_id_api", "resume_id", "api_difference"
+        ]
+
+        # автоподбор ширины по макс. длине (header + значения)
+        def _set_column_widths_autofit(ws, df_sheet):
+            for i, col in enumerate(df_sheet.columns, start=1):
+                col_letter = get_column_letter(i)
+                header = str(col)
+                values = df_sheet[col].astype(str).replace("nan", "").fillna("").tolist()
+                max_len = len(header)
+                for v in values:
+                    l = len(v)
+                    if l > max_len:
+                        max_len = l
+                width = max_len + 2
+                if width < 4:
+                    width = 4
+                ws.column_dimensions[col_letter].width = width
+
+        # ===== Сохранение Excel в НОВОЕ место и удаление MHTML =====
+        OUTPUT_SAVE_DIR = Path(r"C:\ManekiNeko\AVITO_API\output").resolve()
+        OUTPUT_SAVE_DIR.mkdir(parents=True, exist_ok=True)
+
+        now_dt = datetime.now(tz_target)
+        date_part = now_dt.strftime("%d%m%Y")     # ДДММГГГГ
+        time_part = now_dt.strftime("%M_%S")      # ММ_СС
+        excel_name = f"{date_part}_Выгрузка_АМО_{time_part}.xlsx"
+        excel_path = OUTPUT_SAVE_DIR / excel_name
+
+        with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
+            # PAID_CVS
+            df_out = _sort_df_for_output(df)
+            cols_full = [c for c in desired_order if c in df_out.columns]
+            df_out[cols_full].to_excel(writer, index=False, sheet_name="paid_cvs")
+            ws = writer.sheets["paid_cvs"]
+            _set_column_widths_autofit(ws, df_out[cols_full])
+
+            # NO_ANSWER
+            if not no_answer_df.empty:
+                noans_out = _sort_df_for_output(no_answer_df)
+                cols_noans = [c for c in desired_order if c in noans_out.columns]
+                noans_out[cols_noans].to_excel(writer, index=False, sheet_name="NO_ANSWER")
+                ws_no = writer.sheets["NO_ANSWER"]
+                _set_column_widths_autofit(ws_no, noans_out[cols_noans])
+
+            # резюме закрыто
+            if not closed_df.empty:
+                closed_out = _sort_df_for_output(closed_df)
+                cols_closed = [c for c in desired_order if c in closed_out.columns]
+                closed_out[cols_closed].to_excel(writer, index=False, sheet_name="резюме закрыто")
+                ws_closed = writer.sheets["резюме закрыто"]
+                _set_column_widths_autofit(ws_closed, closed_out[cols_closed])
+
+            # Для_звонков (без json_open/json_paid)
+            df_calls = df.copy()
+            df_calls = _sort_df_for_output(df_calls)
+            cols_calls = [c for c in desired_order if c in df_calls.columns and c not in ("json_open", "json_paid")]
+            df_calls[cols_calls].to_excel(writer, index=False, sheet_name="Для_звонков")
+            ws_calls = writer.sheets["Для_звонков"]
+            _set_column_widths_autofit(ws_calls, df_calls[cols_calls])
+
+            # Исключено_по_стоплисту
+            if not excluded_df.empty:
+                ex_cols_order = [c for c in [
+                    "purchased_at_web", "resume_id", "link", "fio_api", "phone_api", "city_web",
+                    "Комментарий_стоплиста", "ФИО_стоплиста", "Файл", "Лист", "respond_status"
+                ] if c in excluded_df.columns]
+                excluded_df[ex_cols_order].to_excel(writer, index=False, sheet_name="Исключено_по_стоплисту")
+                ws_ex = writer.sheets["Исключено_по_стоплисту"]
+                _set_column_widths_autofit(ws_ex, excluded_df[ex_cols_order])
+
+            # summary (оставляю как есть — snapshot хранит имя удалённого MHTML)
+            pd.DataFrame({
+                "metric": [
+                    "count_unique", "count_scroll_estimate", "snapshot", "page", "tz_name",
+                    "stoplist_dir", "stoplist_size", "excluded_by_stoplist",
+                ],
+                "value": [
+                    len(df), total_cards_est, str(mhtml_path.name), TARGET_URL, tz_name,
+                    str(STOPLIST_DIR), int(stop_count), int(len(excluded_df)),
+                ],
+            }).to_excel(writer, index=False, sheet_name="summary")
+
+        # Удаляем MHTML после успешной записи Excel
+        try:
+            mhtml_path.unlink()
+            print(f"MHTML удалён: {mhtml_path}")
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(f"⚠️  Не удалось удалить MHTML ({mhtml_path}): {e}")
+
+        # Статистика по стоплисту
+        if stoplist_file_stats:
+            print(f"\n📋 Статистика стоплиста:")
+            print(f"   Общий размер: {stop_count} записей")
+            print(f"   Исключено записей: {len(excluded_df)}")
+            print(f"   Файлы источники:")
+            for filename, count in stoplist_file_stats.items():
+                print(f"     • {filename}: {count} записей")
+        else:
+            print(f"\n📋 Стоплист пуст (файлов не найдено в {STOPLIST_DIR})")
+
+        print(f"\n📊 Excel: {excel_path}")
+
+        context.close()
+
+if __name__ == "__main__":
+    main()
