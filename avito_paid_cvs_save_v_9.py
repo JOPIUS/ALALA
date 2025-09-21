@@ -706,6 +706,18 @@ def enrich_one(resume_id: str, tz_target) -> dict:
 
     desired_title_api   = str(open_js.get("title") or "")
     salary_expected_api = _salary_to_text(open_js.get("salary"))
+    
+    # Извлечение данных о локации из API
+    location_api = ""
+    city_api = ""
+    region_api = ""
+    if isinstance(open_js, dict) and "location" in open_js:
+        loc = open_js["location"]
+        if isinstance(loc, dict):
+            city_api = str(loc.get("city") or "")
+            region_api = str(loc.get("region") or "")
+            # Полная локация для отладки
+            location_api = f"{city_api}, {region_api}".strip(", ")
 
     return {
         "fio_api": fio,
@@ -722,6 +734,9 @@ def enrich_one(resume_id: str, tz_target) -> dict:
         "update_time_api_raw": update_time_api_raw,
         "desired_title_api": desired_title_api,
         "salary_expected_api": salary_expected_api,
+        "location_api": location_api,  # полная локация
+        "city_api": city_api,         # город из API
+        "region_api": region_api,     # регион из API
         "json_open": json.dumps(open_js, ensure_ascii=False),
         "json_paid": json.dumps(paid_js, ensure_ascii=False),
     }
@@ -813,6 +828,99 @@ def enrich_resume_batch(resume_ids: list[str], tz_target, max_workers: int = 8) 
     
     print(f"🎉 Параллельная обработка завершена: {len(results)} резюме")
     return results
+
+
+def is_excluded_region(region_api: str, city_api: str, city_web: str) -> bool:
+    """
+    Проверяет, нужно ли исключить кандидата по географическому признаку.
+    Исключаем: Чечня, Дагестан, Ингушетия, Тува
+    """
+    excluded_regions = {
+        "чеченская республика", "чечня", "республика чечня",
+        "дагестан", "республика дагестан", 
+        "ингушетия", "республика ингушетия",
+        "тува", "республика тыва", "тыва"
+    }
+    
+    excluded_cities = {
+        "грозный", "махачкала", "назрань", "кызыл", "магас"
+    }
+    
+    # Проверяем регион из API
+    if region_api:
+        region_lower = region_api.lower().strip()
+        if any(excluded in region_lower for excluded in excluded_regions):
+            return True
+    
+    # Проверяем город из API
+    if city_api:
+        city_lower = city_api.lower().strip()
+        if city_lower in excluded_cities:
+            return True
+    
+    # Проверяем город из web-данных (fallback)
+    if city_web:
+        city_lower = city_web.lower().strip()
+        if city_lower in excluded_cities:
+            return True
+        # Проверяем есть ли название региона в строке города (часто бывает "г. Грозный, Чеченская Республика")
+        if any(excluded in city_lower for excluded in excluded_regions):
+            return True
+    
+    return False
+
+
+def create_today_sheet(df: pd.DataFrame, stop_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Создает лист 'на_сегодня' с фильтрацией:
+    1. updated_at_web за последние 24 часа
+    2. Исключение по стоплисту (по телефону)
+    3. Исключение по регионам (Чечня, Дагестан, Ингушетия, Тува)
+    """
+    if df.empty:
+        return pd.DataFrame()
+    
+    # 1. Фильтр по времени (последние 24 часа)
+    cutoff_time = datetime.now() - timedelta(hours=24)
+    
+    today_df = df.copy()
+    if "updated_at_web" in today_df.columns:
+        # Конвертируем в datetime если нужно
+        today_df["updated_at_web"] = pd.to_datetime(today_df["updated_at_web"], errors="coerce")
+        # Фильтруем по времени
+        mask_recent = today_df["updated_at_web"] >= cutoff_time
+        today_df = today_df[mask_recent]
+    
+    if today_df.empty:
+        return pd.DataFrame()
+    
+    # 2. Исключение по стоплисту (телефоны)
+    if not stop_df.empty and "phone_api" in today_df.columns:
+        today_df["_phone_clean"] = _clean_phone_series(today_df["phone_api"]).fillna("")
+        stop_phones = set(_clean_phone_series(stop_df[_DEF_COLS["phone"]]).fillna(""))
+        stop_phones.discard("")  # Убираем пустые
+        
+        if stop_phones:
+            mask_not_in_stoplist = ~today_df["_phone_clean"].isin(stop_phones)
+            today_df = today_df[mask_not_in_stoplist]
+        
+        today_df = today_df.drop(columns=["_phone_clean"], errors="ignore")
+    
+    if today_df.empty:
+        return pd.DataFrame()
+    
+    # 3. Исключение по регионам
+    mask_not_excluded_region = ~today_df.apply(
+        lambda row: is_excluded_region(
+            row.get("region_api", ""), 
+            row.get("city_api", ""), 
+            row.get("city_web", "")
+        ), 
+        axis=1
+    )
+    today_df = today_df[mask_not_excluded_region]
+    
+    return today_df.reset_index(drop=True)
 
 
 def process_resumes_parallel(uniq: list, tz_target, num_threads: int) -> dict:
@@ -908,6 +1016,7 @@ def main():
             "update_time_api",    # нужен для api_difference расчёта
             "updated_at_api",     # дата обновления из API для сравнения с web
             "desired_title_api",
+            "location_api", "city_api", "region_api",  # данные о локации из API
             "json_open", "json_paid",
         ]
         for c in api_columns:
@@ -1048,7 +1157,7 @@ def main():
         desired_order = [
             "purchased_at_web",
             "updated_at_web", "updated_at_api", "candidate_name_web", "phone_api", "email_api",
-            "desired_title_api", "city_web", "avito_id", "respond_status",
+            "desired_title_api", "city_web", "city_api", "region_api", "location_api", "avito_id", "respond_status",
             "json_open", "json_paid", "link", "Ссылка на чат", "chat_id_api", "resume_id", "api_difference"
         ]
 
@@ -1109,6 +1218,16 @@ def main():
             df_calls[cols_calls].to_excel(writer, index=False, sheet_name="Для_звонков")
             ws_calls = writer.sheets["Для_звонков"]
             _set_column_widths_autofit(ws_calls, df_calls[cols_calls])
+
+            # на_сегодня (последние 24 часа, без стоплиста, без исключенных регионов)
+            today_df = create_today_sheet(df, stop_df)
+            if not today_df.empty:
+                today_df = _sort_df_for_output(today_df)
+                cols_today = [c for c in desired_order if c in today_df.columns and c not in ("json_open", "json_paid")]
+                today_df[cols_today].to_excel(writer, index=False, sheet_name="на_сегодня")
+                ws_today = writer.sheets["на_сегодня"]
+                _set_column_widths_autofit(ws_today, today_df[cols_today])
+                print(f"📅 Лист 'на_сегодня': {len(today_df)} записей (24 часа, без стоплиста, без исключенных регионов)")
 
             # Исключено_по_стоплисту
             if not excluded_df.empty:
