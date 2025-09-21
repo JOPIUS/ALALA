@@ -1,0 +1,23 @@
+[
+  {
+    "resume_id": 524134741,
+    "resume": {
+      "status": 404,
+      "text": "{\"message\":\"route /job/v1/resumes/524134741 not found\",\"code\":400}\n"
+    }
+  },
+  {
+    "resume_id": 456596647,
+    "resume": {
+      "status": 404,
+      "text": "{\"message\":\"route /job/v1/resumes/456596647 not found\",\"code\":400}\n"
+    }
+  },
+  {
+    "resume_id": 234063050,
+    "resume": {
+      "status": 404,
+      "text": "{\"message\":\"route /job/v1/resumes/234063050 not found\",\"code\":400}\n"
+    }
+  }
+]

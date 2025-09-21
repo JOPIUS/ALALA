@@ -7,7 +7,7 @@ v11 = v10 + ТИПИЗИРОВАННЫЕ СТАТУСЫ ЧАТОВ И СООБЩ
   • Анализ статуса общения с кандидатом: "Прочитал/не ответил", "Прочитал/Ответил", "Не высылали сообщения", "Не интересно"
   • Интеграция с данными чатов и сообщений из messenger API
   • Автоматическое определение заинтересованности кандидата по последним сообщениям
-  • Новые поля: chat_status, last_message_direction, response_status, interest_level
+  • Новые поля: chat_status, last_message_direction, last_message_text
   • Приоритизация на основе активности в чатах
 
 Предыдущие возможности (v10):
@@ -45,14 +45,6 @@ class ChatStatus(Enum):
     NO_CHAT = "Чат отсутствует"                     # Нет чата с кандидатом
     UNKNOWN = "Неопределенный"                      # Не удалось определить статус
 
-class InterestLevel(Enum):
-    """Уровень заинтересованности кандидата"""
-    HIGH = "Высокий"         # Активно отвечает, интересуется
-    MEDIUM = "Средний"       # Читает, но не всегда отвечает
-    LOW = "Низкий"          # Читает, но не отвечает
-    NEGATIVE = "Отрицательный"  # Явно отказался
-    UNKNOWN = "Неизвестный"  # Нет данных для оценки
-
 class MessageDirection(Enum):
     """Направление сообщения"""
     IN = "in"               # Входящее (от кандидата)
@@ -68,6 +60,9 @@ except Exception:
         ZoneInfo = None  # type: ignore
 
 DEFAULT_TZ_NAME = "Europe/Moscow"
+
+# ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
+CHATS_DATA: Dict[str, Dict] = {}  # Данные чатов из JSON файла
 
 def _get_tz(tz_name: str):
     tz_name = (tz_name or DEFAULT_TZ_NAME).strip()
@@ -228,108 +223,279 @@ def _ensure_my_user_id() -> int:
         print(f"⛔  _ensure_my_user_id() error: {e}")
         return 0
 
-def _get_candidate_avito_id_from_chat(chat_id: str, page_limit: int = 100, max_pages: int = 8) -> int | None:
-    """
-    Пытается определить avito_id кандидата по chat_id.
-    1) Читаем сообщения чата и берём автора входящих (direction=='in'), отличного от моего user_id.
-    2) Фолбэк: берём участников чата (users/participants) или автора последнего сообщения.
-    Возвращает int или None.
-    """
-    if not chat_id:
-        return None
-
-    my_uid = _ensure_my_user_id()
-    if not my_uid:
-        return None
-
-    # --- 1) По сообщениям (V3). Безопасно: limit <= 100
-    try:
-        page_limit = min(max(1, int(page_limit)), 100)
-    except Exception:
-        page_limit = 100
-
-    offset = 0
-    for _ in range(max_pages):
-        try:
-            url = f"{API_BASE}/messenger/v3/accounts/{my_uid}/chats/{chat_id}/messages/"
-            params = {"limit": page_limit, "offset": offset}
-            r = SESSION.get(url, headers={"Authorization": "Bearer " + _tok.get()}, params=params, timeout=TIMEOUT)
-            if r.status_code != 200:
-                break
-            payload = r.json() or {}
-            # Возможные варианты формата ответа
-            messages = []
-            if isinstance(payload.get("messages"), list):
-                messages = payload["messages"]
-            elif isinstance(payload.get("messages"), dict) and isinstance(payload["messages"].get("messages"), list):
-                messages = payload["messages"]["messages"]
-            elif isinstance(payload.get("result"), list):
-                messages = payload["result"]
-
-            if not messages:
-                break
-
-            # 1а) входящие сообщения — автор и есть кандидат
-            for m in messages:
-                if str(m.get("direction")).lower() == "in":
-                    aid = m.get("author_id") or ((m.get("author") or {}).get("id"))
-                    try:
-                        aid = int(aid)
-                    except Exception:
-                        aid = None
-                    if aid and aid not in (0, my_uid):
-                        return aid
-
-            # 1б) фолбэк на странице — любой автор ≠ мы и ≠ 0
-            for m in messages:
-                aid = m.get("author_id") or ((m.get("author") or {}).get("id"))
-                try:
-                    aid = int(aid)
-                except Exception:
-                    aid = None
-                if aid and aid not in (0, my_uid):
-                    return aid
-
-            got = len(messages)
-            if got < page_limit:
-                break
-            offset += got
-        except Exception as e:
-            print(f"⚠️  messages fetch error: {e}")
-            break
-
-    # --- 2) Общий фолбэк — информация по чату
-    try:
-        for tail in ("/", ""):
-            url = f"{API_BASE}/messenger/v3/accounts/{my_uid}/chats/{chat_id}{tail}"
-            r = SESSION.get(url, headers={"Authorization": "Bearer " + _tok.get()}, timeout=TIMEOUT)
-            if r.status_code != 200:
-                continue
-            data = r.json() or {}
-            users = data.get("users") or data.get("participants") or []
-            for u in users:
-                aid = u.get("id") or u.get("user_id")
-                try:
-                    aid = int(aid)
-                except Exception:
-                    aid = None
-                if aid and aid not in (0, my_uid):
-                    return aid
-            lm = data.get("last_message") or {}
-            aid = lm.get("author_id") or ((lm.get("author") or {}).get("id"))
-            try:
-                aid = int(aid)
-            except Exception:
-                aid = None
-            if aid and aid not in (0, my_uid):
-                return aid
-    except Exception as e:
-        print(f"⚠️  chat info fallback error: {e}")
-
-    return None
-
-
 # ========== АНАЛИЗ СТАТУСОВ ЧАТОВ И СООБЩЕНИЙ ==========
+
+def load_chats_from_api() -> Dict[str, Dict]:
+    """
+    Загружает актуальные данные чатов через API.
+    Возвращает словарь: {chat_id: chat_data} для быстрого поиска.
+    """
+    print("🔄 Загрузка актуальных чатов через API...")
+    
+    try:
+        # Получаем токен
+        token = _tok.get()
+        if not token:
+            print("⛔ Не удалось получить токен для загрузки чатов")
+            return {}
+            
+        # Получаем user_id
+        user_id = _ensure_my_user_id()
+        if not user_id:
+            print("⛔ Не удалось получить user_id для загрузки чатов")
+            return {}
+        
+        headers = {'Authorization': f'Bearer {token}'}
+        
+        # Загружаем все чаты постранично с обходом ограничения offset
+        all_chats = []
+        limit = 100
+        max_offset = 1000  # Максимальный offset согласно Swagger
+        
+        def fetch_chats_batch(unread_only=None):
+            """Загружает пакет чатов с опциональной фильтрацией по прочтению"""
+            batch_chats = []
+            offset = 0
+            
+            while offset <= max_offset:
+                params = {'offset': offset, 'limit': limit}
+                if unread_only is not None:
+                    params['unread_only'] = unread_only
+                    
+                chats_url = f"{API_BASE}/messenger/v2/accounts/{user_id}/chats"
+                
+                try:
+                    response = SESSION.get(chats_url, headers=headers, params=params, timeout=TIMEOUT)
+                    
+                    if response.status_code != 200:
+                        print(f"⚠️ Ошибка загрузки чатов (offset {offset}, unread_only={unread_only}): {response.status_code}")
+                        
+                        # При ошибке 401/403 пробуем обновить токен
+                        if response.status_code in [401, 403]:
+                            print("🔑 Пробуем обновить токен...")
+                            _tok.force_refresh_on_start = True
+                            new_token = _tok.get()
+                            headers['Authorization'] = f'Bearer {new_token}'
+                            
+                            # Повторяем запрос с новым токеном
+                            response = SESSION.get(chats_url, headers=headers, params=params, timeout=TIMEOUT)
+                            if response.status_code == 200:
+                                print("✅ Токен обновлен успешно, продолжаем")
+                            else:
+                                print(f"❌ Даже с новым токеном ошибка: {response.status_code}")
+                                break
+                        elif response.status_code == 400:
+                            print("⚠️ Возможно, достигнут лимит API для этого фильтра")
+                            break
+                        else:
+                            break
+                        
+                    data = response.json()
+                    chats = data.get('chats', [])
+                    
+                    if not chats:
+                        print(f"✅ Больше чатов не найдено для unread_only={unread_only}")
+                        break
+                        
+                    batch_chats.extend(chats)
+                    filter_msg = f" (unread_only={unread_only})" if unread_only is not None else ""
+                    print(f"✅ Загружено чатов: +{len(chats)}, всего в пакете: {len(batch_chats)}{filter_msg}")
+                    
+                    # Если получили меньше лимита, значит это последняя страница
+                    if len(chats) < limit:
+                        print(f"✅ Получен неполный результат для unread_only={unread_only}")
+                        break
+                        
+                    offset += limit
+                    time.sleep(0.1)  # Небольшая пауза между запросами
+                    
+                except Exception as e:
+                    print(f"⚠️ Ошибка запроса чатов: {e}")
+                    break
+                    
+            return batch_chats
+        
+        # Сначала загружаем все чаты (читанные и нечитанные)
+        print("📥 Загружаем все чаты...")
+        all_chats.extend(fetch_chats_batch())
+        
+        # Затем отдельно загружаем только непрочитанные чаты 
+        # (могут быть другие чаты за пределами offset=1000)
+        print("📨 Загружаем непрочитанные чаты отдельно...")
+        unread_chats = fetch_chats_batch(unread_only=True)
+        
+        # Объединяем уникальные чаты (избегаем дублирования)
+        existing_chat_ids = {chat.get("id") for chat in all_chats if chat.get("id")}
+        unread_added = 0
+        for chat in unread_chats:
+            if chat.get("id") and chat.get("id") not in existing_chat_ids:
+                all_chats.append(chat)
+                existing_chat_ids.add(chat.get("id"))
+                unread_added += 1
+                
+        if unread_added > 0:
+            print(f"✅ Добавлено {unread_added} непрочитанных чатов")
+        
+        # Дополнительно: пробуем загрузить чаты по типам (если API поддерживает)
+        print("🔄 Пробуем загрузить чаты разных типов...")
+        try:
+            # Попробуем разные типы чатов, если API поддерживает параметр chatTypes
+            chat_types = ["u2i", "i2u", "public"]  # user-to-item, item-to-user, public
+            for chat_type in chat_types:
+                type_chats_url = f"{API_BASE}/messenger/v2/accounts/{user_id}/chats"
+                type_params = {'offset': 0, 'limit': 100, 'chat_types': chat_type}
+                
+                type_response = SESSION.get(type_chats_url, headers=headers, params=type_params, timeout=TIMEOUT)
+                if type_response.status_code == 200:
+                    type_data = type_response.json()
+                    type_chats = type_data.get('chats', [])
+                    type_added = 0
+                    
+                    for chat in type_chats:
+                        if chat.get("id") and chat.get("id") not in existing_chat_ids:
+                            all_chats.append(chat)
+                            existing_chat_ids.add(chat.get("id"))
+                            type_added += 1
+                            
+                    if type_added > 0:
+                        print(f"✅ Добавлено {type_added} чатов типа {chat_type}")
+                else:
+                    print(f"⚠️ Тип чатов {chat_type} не поддерживается: {type_response.status_code}")
+                        
+        except Exception as e:
+            print(f"⚠️ Ошибка при загрузке чатов по типам: {e}")
+        
+        # Дополнительно пробуем загрузить через v1 API (может дать другие результаты)
+        print("🔄 Пробуем загрузить дополнительные чаты через v1 API...")
+        try:
+            v1_chats_url = f"{API_BASE}/messenger/v1/accounts/{user_id}/chats"
+            v1_params = {'offset': 0, 'limit': 100}
+            v1_response = SESSION.get(v1_chats_url, headers=headers, params=v1_params, timeout=TIMEOUT)
+            
+            if v1_response.status_code == 200:
+                v1_data = v1_response.json()
+                v1_chats = v1_data.get('chats', [])
+                v1_count_before = len(all_chats)
+                
+                for chat in v1_chats:
+                    if chat.get("id") and chat.get("id") not in existing_chat_ids:
+                        all_chats.append(chat)
+                        existing_chat_ids.add(chat.get("id"))
+                        
+                v1_added = len(all_chats) - v1_count_before
+                if v1_added > 0:
+                    print(f"✅ Добавлено {v1_added} дополнительных чатов через v1 API")
+                else:
+                    print("✅ v1 API не дал новых чатов")
+            else:
+                print(f"⚠️ v1 API недоступен: {v1_response.status_code}")
+                
+        except Exception as e:
+            print(f"⚠️ Ошибка при запросе v1 API: {e}")
+                
+        print(f"✅ Итого уникальных чатов: {len(all_chats)}")
+        
+        # Дополнительная информация о покрытии
+        if len(all_chats) >= 1100:
+            print("🎯 Отличный результат! Получено максимальное количество чатов")
+        elif len(all_chats) >= 1000:
+            print("✅ Хороший результат! Обход ограничения offset сработал")
+        else:
+            print("⚠️ Получено меньше ожидаемого количества чатов")
+        
+        # Преобразуем в словарь для быстрого поиска
+        chat_dict = {}
+        for chat in all_chats:
+            chat_id = chat.get("id")
+            if chat_id:
+                chat_dict[chat_id] = chat
+                
+        print(f"✅ Загружено {len(chat_dict)} чатов через API")
+        return chat_dict
+        
+    except Exception as e:
+        print(f"⛔ Ошибка загрузки чатов через API: {e}")
+        return {}
+
+
+def load_chats_from_json(json_file_path: str = "avito_export_20250920_015400.json") -> Dict[str, Dict]:
+    """
+    Загружает данные чатов из JSON файла экспорта.
+    Возвращает словарь: {chat_id: chat_data} для быстрого поиска.
+    """
+    if not os.path.exists(json_file_path):
+        print(f"⚠️  Chat JSON file not found: {json_file_path}")
+        return {}
+        
+    try:
+        with open(json_file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            
+        chats = data.get("chats", [])
+        chat_dict = {}
+        
+        for chat in chats:
+            chat_id = chat.get("id")
+            if chat_id:
+                chat_dict[chat_id] = chat
+                
+        print(f"✅ Loaded {len(chat_dict)} chats from {json_file_path}")
+        return chat_dict
+        
+    except Exception as e:
+        print(f"⛔ Error loading chats from JSON: {e}")
+        return {}
+
+
+def analyze_chat_from_json(chat_data: Dict) -> Tuple[str, str, str]:
+    """
+    Анализирует данные чата из JSON экспорта.
+    Возвращает: (chat_status, last_message_direction, last_message_text)
+    """
+    if not chat_data:
+        return ChatStatus.NO_CHAT.value, "", ""
+        
+    last_message = chat_data.get("last_message", {})
+    if not last_message:
+        return ChatStatus.NO_MESSAGES_SENT.value, "", ""
+        
+    # Информация о последнем сообщении
+    direction = last_message.get("direction", "").lower()
+    message_text = ""
+    content = last_message.get("content", {})
+    if isinstance(content, dict):
+        message_text = content.get("text", "")[:500]  # ограничим длину
+        
+    # Определяем направление
+    if direction == "in":
+        last_message_direction = "Входящее"
+    elif direction == "out":
+        last_message_direction = "Исходящее"
+    else:
+        last_message_direction = "Неизвестно"
+        
+    # Проверяем статус прочтения
+    read_timestamp = last_message.get("read")
+    delivered_timestamp = last_message.get("delivered")
+    
+    # Определяем статус чата
+    if direction == "in":
+        # Последнее сообщение входящее - кандидат написал
+        if read_timestamp:
+            chat_status = ChatStatus.READ_NO_REPLY.value  # Прочитали, но не ответили
+        else:
+            chat_status = ChatStatus.READ_NO_REPLY.value  # Входящие обычно считаем прочитанными
+    elif direction == "out":
+        # Последнее сообщение исходящее - мы написали
+        if read_timestamp:
+            chat_status = ChatStatus.READ_REPLIED.value  # Отправили и кандидат прочитал
+        else:
+            chat_status = ChatStatus.NO_MESSAGES_SENT.value  # Отправили, но не прочитано
+    else:
+        chat_status = ChatStatus.UNKNOWN.value
+        
+    return chat_status, last_message_direction, message_text
+
 
 def get_chat_messages(chat_id: str, limit: int = 100) -> List[Dict]:
     """
@@ -369,64 +535,19 @@ def get_chat_messages(chat_id: str, limit: int = 100) -> List[Dict]:
         return []
 
 
-def analyze_message_content_for_interest(text: str) -> InterestLevel:
-    """
-    Анализирует текст сообщения для определения уровня заинтересованности.
-    """
-    if not text:
-        return InterestLevel.UNKNOWN
-    
-    text_lower = text.lower().strip()
-    
-    # Отрицательные сигналы
-    negative_patterns = [
-        r"не\s+интересн", r"не\s+подходит", r"не\s+рассматрива", 
-        r"отказыва", r"не\s+хочу", r"не\s+буду", r"спасибо\s*,?\s*но\s+нет",
-        r"не\s+готов", r"не\s+могу", r"передумал", r"уже\s+нашел"
-    ]
-    
-    for pattern in negative_patterns:
-        if re.search(pattern, text_lower):
-            return InterestLevel.NEGATIVE
-    
-    # Позитивные сигналы
-    positive_patterns = [
-        r"интересн", r"подходит", r"рассматрива", r"согласен", r"готов",
-        r"когда\s+можн", r"во\s+сколько", r"где\s+встрет", r"адрес",
-        r"телефон", r"звоните", r"жду", r"хорошо", r"да\s*,?\s*(конечно|разумеется)",
-        r"подробнее", r"детали", r"условия", r"зарплат"
-    ]
-    
-    for pattern in positive_patterns:
-        if re.search(pattern, text_lower):
-            return InterestLevel.HIGH
-    
-    # Нейтральные, но активные ответы
-    neutral_active_patterns = [
-        r"спасибо", r"понятно", r"хорошо", r"ок", r"да", r"нет\s*,?\s*но",
-        r"можете", r"скажите", r"а\s+"
-    ]
-    
-    for pattern in neutral_active_patterns:
-        if re.search(pattern, text_lower):
-            return InterestLevel.MEDIUM
-    
-    return InterestLevel.UNKNOWN
-
-
-def determine_chat_status(chat_id: str, my_user_id: int) -> tuple[ChatStatus, InterestLevel, Optional[str], Optional[str]]:
+def determine_chat_status(chat_id: str, my_user_id: int) -> tuple[ChatStatus, Optional[str], Optional[str]]:
     """
     Определяет статус чата на основе анализа сообщений.
     
     Возвращает:
-        (chat_status, interest_level, last_message_direction, last_message_text)
+        (chat_status, last_message_direction, last_message_text)
     """
     if not chat_id:
-        return ChatStatus.NO_CHAT, InterestLevel.UNKNOWN, None, None
+        return ChatStatus.NO_CHAT, None, None
     
     messages = get_chat_messages(chat_id, limit=50)
     if not messages:
-        return ChatStatus.NO_CHAT, InterestLevel.UNKNOWN, None, None
+        return ChatStatus.NO_CHAT, None, None
     
     # Сортируем сообщения по времени (последние сначала)
     messages.sort(key=lambda m: m.get('created', 0), reverse=True)
@@ -454,11 +575,11 @@ def determine_chat_status(chat_id: str, my_user_id: int) -> tuple[ChatStatus, In
     
     # Если мы не отправляли сообщения
     if not our_messages:
-        return ChatStatus.NO_MESSAGES_SENT, InterestLevel.UNKNOWN, None, None
+        return ChatStatus.NO_MESSAGES_SENT, None, None
     
     # Если кандидат не отвечал
     if not candidate_messages:
-        return ChatStatus.READ_NO_REPLY, InterestLevel.LOW, MessageDirection.OUT.value, None
+        return ChatStatus.READ_NO_REPLY, MessageDirection.OUT.value, None
     
     # Анализируем последние сообщения
     last_message = messages[0] if messages else None
@@ -481,31 +602,13 @@ def determine_chat_status(chat_id: str, my_user_id: int) -> tuple[ChatStatus, In
         
         last_message_text = last_message.get('content', {}).get('text', '') if last_message.get('content') else ''
     
-    # Анализируем заинтересованность на основе сообщений кандидата
-    overall_interest = InterestLevel.UNKNOWN
-    
-    for msg in candidate_messages[:5]:  # Анализируем последние 5 сообщений кандидата
-        content = msg.get('content', {})
-        text = content.get('text', '') if content else ''
-        interest = analyze_message_content_for_interest(text)
-        
-        if interest == InterestLevel.NEGATIVE:
-            overall_interest = InterestLevel.NEGATIVE
-            break
-        elif interest == InterestLevel.HIGH and overall_interest not in [InterestLevel.NEGATIVE]:
-            overall_interest = InterestLevel.HIGH
-        elif interest == InterestLevel.MEDIUM and overall_interest not in [InterestLevel.NEGATIVE, InterestLevel.HIGH]:
-            overall_interest = InterestLevel.MEDIUM
-    
     # Определяем основной статус
-    if overall_interest == InterestLevel.NEGATIVE:
-        chat_status = ChatStatus.NOT_INTERESTED
-    elif candidate_messages:
+    if candidate_messages:
         chat_status = ChatStatus.READ_REPLIED
     else:
         chat_status = ChatStatus.READ_NO_REPLY
     
-    return chat_status, overall_interest, last_message_direction, last_message_text
+    return chat_status, last_message_direction, last_message_text
 
 
 # ——— Avito Job API wrappers
@@ -879,7 +982,6 @@ def enrich_one(resume_id: str, tz_target) -> dict:
     phone = email = chat_id = ""
     fio = ""
     first_name = last_name = patronymic = ""
-    avito_id_val: str = ""
 
     if paid_js:
         fio = (paid_js.get("name") or "")[:256].strip()
@@ -896,30 +998,23 @@ def enrich_one(resume_id: str, tz_target) -> dict:
             elif t in ("e-mail", "email"):  email = v
             elif t == "chat_id": chat_id = v
 
-    # <-- НОВОЕ: если есть chat_id, получаем по нему avito_id кандидата
-    if chat_id:
-        try:
-            cand_id = _get_candidate_avito_id_from_chat(chat_id, page_limit=100, max_pages=8)
-            if cand_id:
-                avito_id_val = str(int(cand_id))
-        except Exception as e:
-            print(f"⚠️  resolve avito_id by chat_id={chat_id} failed: {e}")
-
-    # <-- НОВОЕ v11: анализ статуса чата и сообщений
+    # <-- НОВОЕ v11: анализ статуса чата и сообщений из JSON файла
     chat_status = ChatStatus.NO_CHAT.value
-    interest_level = InterestLevel.UNKNOWN.value
     last_message_direction = None
     last_message_text = None
     
-    if chat_id:
+    if chat_id and CHATS_DATA:
         try:
-            my_uid = _ensure_my_user_id()
-            if my_uid:
-                status, interest, direction, text = determine_chat_status(chat_id, my_uid)
-                chat_status = status.value
-                interest_level = interest.value
+            # Используем данные из загруженного JSON файла вместо API вызовов
+            chat_data = CHATS_DATA.get(chat_id)
+            if chat_data:
+                status, direction, text = analyze_chat_from_json(chat_data)
+                chat_status = status
                 last_message_direction = direction
                 last_message_text = text[:200] if text else None  # Ограничиваем длину
+                print(f"✅ Chat {chat_id}: {status} | {direction}")
+            else:
+                print(f"⚠️  Chat {chat_id} not found in loaded data")
         except Exception as e:
             print(f"⚠️  chat status analysis failed for {chat_id}: {e}")
 
@@ -939,18 +1034,6 @@ def enrich_one(resume_id: str, tz_target) -> dict:
     desired_title_api   = str(open_js.get("title") or "")
     salary_expected_api = _salary_to_text(open_js.get("salary"))
     
-    # Извлечение данных о локации из API
-    location_api = ""
-    city_api = ""
-    region_api = ""
-    if isinstance(open_js, dict) and "location" in open_js:
-        loc = open_js["location"]
-        if isinstance(loc, dict):
-            city_api = str(loc.get("city") or "")
-            region_api = str(loc.get("region") or "")
-            # Полная локация для отладки
-            location_api = f"{city_api}, {region_api}".strip(", ")
-
     return {
         "fio_api": fio,
         "first_name_api": first_name,
@@ -959,19 +1042,14 @@ def enrich_one(resume_id: str, tz_target) -> dict:
         "phone_api": phone,
         "email_api": email,
         "chat_id_api": chat_id,      # как и раньше
-        "avito_id": avito_id_val,    # <-- НОВОЕ поле
         "is_purchased_api": is_purchased_api,
         "update_time_api": update_time_api,
         "updated_at_api": update_time_api,  # копия для отображения рядом с updated_at_web
         "update_time_api_raw": update_time_api_raw,
         "desired_title_api": desired_title_api,
         "salary_expected_api": salary_expected_api,
-        "location_api": location_api,  # полная локация
-        "city_api": city_api,         # город из API
-        "region_api": region_api,     # регион из API
         # Новые поля v11 для анализа чатов
         "chat_status": chat_status,
-        "interest_level": interest_level,
         "last_message_direction": last_message_direction,
         "last_message_text": last_message_text,
         "json_open": json.dumps(open_js, ensure_ascii=False),
@@ -1146,11 +1224,11 @@ def create_today_sheet(df: pd.DataFrame, stop_df: pd.DataFrame) -> pd.DataFrame:
     if today_df.empty:
         return pd.DataFrame()
     
-    # 3. Исключение по регионам
+    # 3. Исключение по регионам (используем только city_web, так как API поля удалены)
     mask_not_excluded_region = ~today_df.apply(
         lambda row: is_excluded_region(
-            row.get("region_api", ""), 
-            row.get("city_api", ""), 
+            "",  # region_api удалено
+            "",  # city_api удалено
             row.get("city_web", "")
         ), 
         axis=1
@@ -1187,6 +1265,11 @@ def main():
         limit = ask_limit_from_user()
 
     print(f"🔧 Настройки: лимит={limit or 'все'}, потоков={num_threads}, часовой_пояс={tz_name}")
+    
+    # Загрузка актуальных чатов через API для анализа
+    global CHATS_DATA
+    CHATS_DATA = load_chats_from_api()
+    print(f"📊 Загружено {len(CHATS_DATA)} чатов для анализа")
 
     USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
@@ -1253,7 +1336,8 @@ def main():
             "update_time_api",    # нужен для api_difference расчёта
             "updated_at_api",     # дата обновления из API для сравнения с web
             "desired_title_api",
-            "location_api", "city_api", "region_api",  # данные о локации из API
+            # Удалены пустые API поля: "location_api", "city_api", "region_api"
+            "chat_status", "last_message_direction", "last_message_text",  # новые поля v11
             "json_open", "json_paid",
         ]
         for c in api_columns:
@@ -1397,22 +1481,21 @@ def main():
                 job_status = str(row.get("job_search_status_web", "")).lower()
                 ready_start = str(row.get("ready_to_start_web", "")).lower()
                 chat_status = str(row.get("chat_status", ""))
-                interest_level = str(row.get("interest_level", ""))
                 
                 # Отрицательный приоритет: кандидат не заинтересован
-                if chat_status == ChatStatus.NOT_INTERESTED.value or interest_level == InterestLevel.NEGATIVE.value:
+                if chat_status == ChatStatus.NOT_INTERESTED.value:
                     return 9
                 
-                # Высший приоритет: активно ищет + готов завтра/сразу + высокий интерес
-                if job_status and ready_start and interest_level == InterestLevel.HIGH.value:
+                # Высший приоритет: активно ищет + готов завтра/сразу + отвечает в чате
+                if job_status and ready_start and chat_status == ChatStatus.READ_REPLIED.value:
                     return 1
                 
                 # Очень высокий приоритет: активно ищет + готов завтра/сразу
                 if job_status and ready_start:
                     return 2
                 
-                # Высокий приоритет: активно ищет + высокий интерес в чате
-                if job_status and interest_level == InterestLevel.HIGH.value:
+                # Высокий приоритет: активно ищет + отвечает в чате
+                if job_status and chat_status == ChatStatus.READ_REPLIED.value:
                     return 3
                 
                 # Выше среднего: только активно ищет работу
@@ -1464,9 +1547,10 @@ def main():
         desired_order = [
             "purchased_at_web",
             "updated_at_web", "updated_at_api", "candidate_name_web", "job_search_status_web", "ready_to_start_web",
-            "chat_status", "interest_level", "last_message_direction", "last_message_text",
-            "phone_api", "email_api", "desired_title_api", "city_web", "city_api", "region_api", "location_api", 
-            "avito_id", "respond_status", "json_open", "json_paid", "link", "Ссылка на чат", "chat_id_api", 
+            "chat_status", "last_message_direction", "last_message_text",
+            "phone_api", "email_api", "desired_title_api", "city_web",
+            # Удалены пустые API поля: "city_api", "region_api", "location_api", "avito_id"
+            "respond_status", "json_open", "json_paid", "link", "Ссылка на чат", "chat_id_api", 
             "resume_id", "api_difference"
         ]
 

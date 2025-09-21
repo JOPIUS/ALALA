@@ -1,0 +1,6 @@
+2025/09/21-21:00:02.357 4cd0 Reusing MANIFEST C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2025/09/21-21:00:02.364 4cd0 Recovering log #51
+2025/09/21-21:00:02.366 4cd0 Reusing old log C:\ManekiNeko\AVITO_API\OpenAPI-Specification\avito_browser_profile\Default\Local Storage\leveldb/000051.log 
+2025/09/21-21:01:02.383 19ac Level-0 table #55: started
+2025/09/21-21:01:02.391 19ac Level-0 table #55: 55541 bytes OK
+2025/09/21-21:01:02.393 19ac Delete type=0 #51

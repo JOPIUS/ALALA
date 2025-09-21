@@ -1,0 +1,56 @@
+{
+  "timestamp": "20250921_210626",
+  "user_id": "316615541",
+  "api_analysis": {
+    "v1_available": false,
+    "v2_available": true,
+    "v1_total": 0,
+    "v2_total": 1,
+    "v1_max_offset": 0,
+    "v2_max_offset": 0,
+    "supported_params": [],
+    "chat_types": []
+  },
+  "pagination_limits": {
+    "max_working_offset": 1000,
+    "max_working_limit": 100,
+    "error_at_offset": 1500,
+    "total_found": 0
+  },
+  "parameters_test": {
+    "unread_only": {
+      "supported": false,
+      "result_count": 0
+    },
+    "chat_types": {
+      "supported": true,
+      "types_tested": [
+        {
+          "type": "u2i",
+          "count": 10
+        }
+      ]
+    },
+    "item_ids": {
+      "supported": false
+    }
+  },
+  "total_chats_loaded": 1100,
+  "chat_sample": [
+    "u2i-v~kNKwsHHlFCmuU7R30s8g",
+    "u2i-_Oe~5dapoFXFQS6O_dGC_Q",
+    "u2i-NiQGPAnINEiTTJ56LKCKYw",
+    "u2i-qXLK_IUjOwzLA6KxfYSnMw",
+    "u2i-ZHtlo2s3i1_5SLJ0YE7BzA",
+    "u2i-5dTyO~7WSNlNE2mh1ygOAA",
+    "u2i-4uw3QFy4Nweufu_~9lVvMQ",
+    "u2i-LE78OabHfHkzkL9_WMjvUQ",
+    "u2i-VFq6nkkB8orxUkksAwb89Q",
+    "u2i-f~aVY0KdMjvGImqIVScTHQ"
+  ],
+  "recommendations": [
+    "✅ Параметр chat_types работает, можно загружать по типам",
+    "🎯 Удалось загрузить 1100 чатов - больше лимита offset!",
+    "🔧 Рекомендация: использовать комбинацию всех рабочих стратегий"
+  ]
+}
