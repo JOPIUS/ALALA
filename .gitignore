@@ -10,3 +10,24 @@ deploy-preview/
 coverage/
 _site/
 Gemfile.lock
+
+# Браузерные профили и кэш
+avito_browser_profile/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Временные файлы
+*.tmp
+*.log
+
+# Сохраненные страницы
+saved_pages/
+
+# JSON файлы с тестовыми данными (можно исключить для уменьшения размера)
+browser_test_*.json
+
+# Результаты экспорта (если нужно исключить большие файлы)
+*.xlsx
+*.mhtml
